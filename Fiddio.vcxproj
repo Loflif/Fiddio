@@ -31,11 +31,13 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="src\LevelLoader.lua" />
+    <None Include="src\Player.lua" />
     <None Include="src\Settings.lua" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CollisionHandler.h" />
     <ClInclude Include="src\LevelHandler.h" />
+    <ClInclude Include="src\LuaIncludes.h" />
     <ClInclude Include="src\Player.h" />
     <ClInclude Include="src\Fiddio.h" />
     <ClInclude Include="src\Entity.h" />

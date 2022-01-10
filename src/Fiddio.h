@@ -26,6 +26,7 @@ public:
 	void CheckCollisions();
 
 	bool Running() { return IsRunning; }
+	
 private:
 	void Init();
 	void AddCollisionPairs();
@@ -37,7 +38,8 @@ private:
 
 	double timePlaying = 0.0;
 };
-static int FRAME_NUM;
+
+extern Uint64 FRAME_NUM;
 
 bool KeyDown(Key key);
 bool KeyPressed(Key key);

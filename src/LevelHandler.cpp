@@ -1,6 +1,7 @@
 #include "LevelHandler.h"
 
 #include "ScriptHandler.h"
+
 #include "Entity.h"
 #include "Player.h"
 #include "Fiddio.h"
@@ -12,7 +13,18 @@ namespace LevelHandler
 {
 	void Init()
 	{
-		ScriptHandler::CallFunctionNoReturn("src/LevelLoader.lua", "LoadLevel", 1);
+		if (!ScriptHandler::RegisterFunction("src/LevelLoader.lua", "_LoadLevel", lua_LoadLevel))
+		{
+			std::cout << "LevelHandler.Init() could not register function wrap_LoadLevel in scripthandler " << std::endl;
+		}
+		if (!ScriptHandler::RegisterFunction("src/LevelLoader.lua", "_SetTile", lua_SetTile))
+		{
+			std::cout << "LevelHandler.Init() could not register function wrap_SetTile in scripthandler " << std::endl;
+		}
+		if (!ScriptHandler::CallFunctionNoReturn("src/LevelLoader.lua", "LoadLevel", 1))
+		{
+			std::cout << "LevelHandler.Init() could not call function LoadLevel in scripthandler " << std::endl;
+		}
 	}
 
 	void CleanUp()
@@ -78,5 +90,25 @@ namespace LevelHandler
 				break;
 			}
 		}
+	}
+
+	static int lua_LoadLevel(lua_State* L)
+	{
+		if (lua_gettop(L) != 3) return -1;
+		int w = lua_tointeger(L, 1);
+		int h = lua_tointeger(L, 2);
+		int tileSize = lua_tointeger(L, 3);
+		LoadLevel(w, h, tileSize);
+		return 0;
+	}
+
+	static int lua_SetTile(lua_State* L)
+	{
+		if (lua_gettop(L) != 3) return -1;
+		int x = lua_tointeger(L, 1);
+		int y = lua_tointeger(L, 2);
+		int type = lua_tointeger(L, 3);
+		SetTile(x, y, type);
+		return 0;
 	}
 }

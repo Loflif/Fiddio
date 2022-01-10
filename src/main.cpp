@@ -1,11 +1,13 @@
 #include <iostream>
 #include "Fiddio.h"
 
-const static double TARGET_FRAME_SECONDS = 1 / 60.0; // Desired time per simulated tick
+const static double TARGET_FRAME_SECONDS = 1 / 100.0; // Desired time per simulated tick
 
 int main(int argc, char* args[])
 {
 	Fiddio game;
+
+	FRAME_NUM = 0;
 
 	double currentTime = static_cast<double>(SDL_GetPerformanceCounter()) / SDL_GetPerformanceFrequency();
 	double remainingFrameTime = 0;
@@ -28,6 +30,7 @@ int main(int argc, char* args[])
 			game.CheckCollisions();
 			game.Update(TARGET_FRAME_SECONDS);
 			remainingFrameTime -= TARGET_FRAME_SECONDS;
+			FRAME_NUM++;
 		}
 
 		while (frameTime < TARGET_FRAME_SECONDS) // Too fast

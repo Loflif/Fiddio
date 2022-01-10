@@ -15,6 +15,8 @@ struct KeyState
 };
 KeyState KEY_STATES[(int)Key::MAX];
 
+Uint64 FRAME_NUM = 0;
+
 Fiddio::Fiddio()
 {
 	Init();
@@ -104,13 +106,6 @@ void Fiddio::HandleEvents()
 
 void Fiddio::Update(double deltaTime)
 {
-	double fps = 1 / deltaTime;
-
-	std::string windowTitle = "FPS: " + std::to_string(fps);
-	SDL_SetWindowTitle(Window, windowTitle.c_str());
-
-	FRAME_NUM++;
-
 	for (auto entity : ActiveEntities)
 	{
 		entity->Update(deltaTime);

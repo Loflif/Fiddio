@@ -14,9 +14,9 @@ namespace CollisionHandler
 		std::pair<Entity::Type, Entity::Type> otherPair(collisionPair.second, collisionPair.first);
 		if ((collisionPairs.find(collisionPair) != collisionPairs.end())
 			|| collisionPairs.find(otherPair) != collisionPairs.end()) // Checks if set contains the pair or the pair in the other order
-			return false;
+			return true;
 
-		return true;
+		return false;
 	}
 
 	bool AABB(Entity* left, Entity* right)
@@ -30,6 +30,26 @@ namespace CollisionHandler
 		}
 		return false;
 	}
+
+	/*bool VerticalAABB(Entity* left, Entity* right)
+	{
+		if (left->Position.x < right->Position.x + right->ColliderSize.x &&
+			left->Position.x + left->ColliderSize.x > right->Position.x)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	bool HorizontalAABB(Entity* left, Entity* right)
+	{
+		if (left->Position.y < right->Position.y + right->ColliderSize.y &&
+			left->Position.y + left->ColliderSize.y > right->Position.y)
+			{
+				return true;
+			}
+		return false;
+	}*/
 
 	void CheckCollisions(std::vector<Entity*> entities)
 	{
@@ -53,6 +73,17 @@ namespace CollisionHandler
 					left->OnCollision(right);
 					right->OnCollision(left);
 				}
+				/*if (VerticalAABB(left, right))
+				{
+					left->OnVerticalCollision(right);
+					right->OnVerticalCollision(left);
+				}
+				if (HorizontalAABB(left, right))
+				{
+					left->OnHorizontalCollision(right);
+					right->OnHorizontalCollision(left);
+				}*/
+
 			}
 		}
 	}

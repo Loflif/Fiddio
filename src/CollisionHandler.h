@@ -14,5 +14,4 @@ namespace CollisionHandler
 	bool HasCollisionPair(std::pair<Entity::Type, Entity::Type> collisionPair);
 	bool AABB(Entity* left, Entity* right);
 	void CheckCollisions(std::vector<Entity*> entities);
-
 }

@@ -31,5 +31,4 @@ void Entity::Update(double deltaTime)
 
 void Entity::OnCollision(Entity* other)
 {
-
 }

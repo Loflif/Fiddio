@@ -1,16 +1,7 @@
 #include "ScriptHandler.h"
 #include "LevelHandler.h"
 
-extern "C"
-{
-#include "../include/lua/lua.h"
-#include "../include/lua/lualib.h"
-#include "../include/lua/lauxlib.h"
-}
-
-#ifdef _WIN64
-#pragma comment(lib, "../lib/liblua54.a")
-#endif
+#include <functional>
 
 namespace ScriptHandler
 {
@@ -20,12 +11,6 @@ namespace ScriptHandler
 	{
 		Script = luaL_newstate();
 		luaL_openlibs(Script);
-
-		if (!CheckLua(Script, luaL_dofile(Script, "src/LevelLoader.lua")))
-			return;
-
-		lua_register(Script, "_LoadLevel", wrap_LoadLevel);
-		lua_register(Script, "_SetTile", wrap_SetTile);
 	}
 
 	void CleanUp()
@@ -33,24 +18,13 @@ namespace ScriptHandler
 		lua_close(Script);
 	}
 
-	static int wrap_LoadLevel(lua_State* L)
+	bool RegisterFunction(const char* fileName, const char* functionName, lua_CFunction functionWrapper)
 	{
-		if (lua_gettop(L) != 3) return -1;
-		int w = lua_tointeger(L, 1);
-		int h = lua_tointeger(L, 2);
-		int tileSize = lua_tointeger(L, 3);
-		LevelHandler::LoadLevel(w, h, tileSize);
-		return 0;
-	}
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
 
-	static int wrap_SetTile(lua_State* L)
-	{
-		if (lua_gettop(L) != 3) return -1;
-		int x = lua_tointeger(L, 1);
-		int y = lua_tointeger(L, 2);
-		int type = lua_tointeger(L, 3);
-		LevelHandler::SetTile(x, y, type);
-		return 0;
+		lua_register(Script, functionName, functionWrapper);
+		return true;
 	}
 
 	bool CheckLua(lua_State* L, int r)
@@ -64,15 +38,7 @@ namespace ScriptHandler
 		return true;
 	}
 
-	bool GetFunction(const char* fileName, const char* functionName, const int functionVariable)
-	{
-		lua_getglobal(Script, functionName);
-		if (!lua_isfunction(Script, -1))
-			return false;
-		return true;
-	}
-
-
+	
 	bool GetTable(const char* fileName, const char* tableName, const char* variableName)
 	{
 		lua_getglobal(Script, tableName);
@@ -124,18 +90,60 @@ namespace ScriptHandler
 		return queriedVariable;
 	}
 
+	bool GetFunction(const char* fileName, const char* functionName)
+	{
+		lua_getglobal(Script, functionName);
+		if (!lua_isfunction(Script, -1))
+			return false;
+
+		return true;
+	}
+
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, const int functionVariable)
 	{
 		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
 			return false;
 
-		if (!GetFunction(fileName, functionName, functionVariable))
+		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushinteger(Script, 1);
+		lua_pushinteger(Script, functionVariable);
 		if (!CheckLua(Script, lua_pcall(Script, 1, 1, 0)))
 			return false;
 
 		return true;
 	}
+
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host)
+	{
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
+
+		if (!GetFunction(fileName, functionName))
+			return false;
+
+		lua_pushlightuserdata(Script, host);
+		if (!CheckLua(Script, lua_pcall(Script, 1, 1, 0)))
+			return false;
+
+		return true;
+	}
+
+
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable)
+	{
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
+
+		if (!GetFunction(fileName, functionName))
+			return false;
+
+		lua_pushlightuserdata(Script, host);
+		lua_pushnumber(Script, functionVariable);
+		if (!CheckLua(Script, lua_pcall(Script, 1, 1, 0)))
+			return false;
+
+		return true;
+	}
+	
 }

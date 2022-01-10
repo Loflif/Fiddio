@@ -44,6 +44,7 @@
     <None Include=".gitignore" />
     <None Include="src\Settings.lua" />
     <None Include="src\LevelLoader.lua" />
+    <None Include="src\Player.lua" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Fiddio.h">
@@ -68,6 +69,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\LevelHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LuaIncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
