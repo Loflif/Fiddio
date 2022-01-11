@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Fiddio.h"
 
-const static double TARGET_FRAME_SECONDS = 1 / 100.0; // Desired time per simulated tick
+const static double DELTA_TIME = 1 / 100.0; // Desired time per simulated tick
 
 int main(int argc, char* args[])
 {
@@ -25,17 +25,17 @@ int main(int argc, char* args[])
 
 		remainingFrameTime += frameTime;
 
-		while (remainingFrameTime >= TARGET_FRAME_SECONDS)
+		while (remainingFrameTime >= DELTA_TIME)
 		{
 			game.CheckCollisions();
-			game.Update(TARGET_FRAME_SECONDS);
-			remainingFrameTime -= TARGET_FRAME_SECONDS;
+			game.Update();
+			remainingFrameTime -= DELTA_TIME;
 			FRAME_NUM++;
 		}
 
-		while (frameTime < TARGET_FRAME_SECONDS) // Too fast
+		while (frameTime < DELTA_TIME) // Too fast
 		{
-			double sleepDuration = TARGET_FRAME_SECONDS - frameTime;
+			double sleepDuration = DELTA_TIME - frameTime;
 			SDL_Delay(sleepDuration);
 			frameTime += sleepDuration;
 		}

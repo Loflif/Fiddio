@@ -12,6 +12,9 @@ namespace ScriptHandler
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, const int functionVariable);
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host);
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable);
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const bool functionVariable2);
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const float functionVariable2);
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const float functionVariable2, const float functionVariable3);
 	bool GetTable(const char* fileName, const char* tableName, const char* variableName);
 	const char* GetTableString(const char* fileName, const char* tableName, const char* variableName);
 	int GetTableInt(const char* fileName, const char* tableName, const char* variableName);

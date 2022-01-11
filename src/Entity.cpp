@@ -1,7 +1,7 @@
 #include "Entity.h"
 
 
-Entity::Entity(Vector2 spawnPos, SDL_Color color, Vector2 colliderSize, Type type, bool activate)
+Entity::Entity(Vector2 spawnPos, SDL_Color color, Vector2 colliderSize, EntityType type, bool activate)
 	: Position(spawnPos),
 	T(type),
 	IsActive(activate),
@@ -24,11 +24,11 @@ void Entity::Render(SDL_Renderer* renderer)
 	SDL_RenderFillRect(renderer, &drawRect);
 }
 
-void Entity::Update(double deltaTime)
+void Entity::Update()
 {
 
 }
 
-void Entity::OnCollision(Entity* other)
+void Entity::OnCollision(Entity* other, CollisionHandler::CollisionDirection dir, float t)
 {
 }

@@ -62,7 +62,7 @@ void Fiddio::Init()
 
 void Fiddio::AddCollisionPairs()
 {
-	CollisionHandler::AddCollisionPair(std::pair<Entity::Type, Entity::Type>(Entity::Type::PLAYER, Entity::Type::WALL));
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::WALL));
 }
 
 
@@ -104,11 +104,11 @@ void Fiddio::HandleEvents()
 	}
 }
 
-void Fiddio::Update(double deltaTime)
+void Fiddio::Update()
 {
 	for (auto entity : ActiveEntities)
 	{
-		entity->Update(deltaTime);
+		entity->Update();
 	}
 }
 

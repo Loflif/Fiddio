@@ -74,5 +74,8 @@
     <ClInclude Include="src\LuaIncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\EntityType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

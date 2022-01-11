@@ -10,6 +10,7 @@ static int WINDOW_HEIGHT;
 static Vector2 SCREEN_CENTER;
 
 const static char* GAME_TITLE;
+extern const double DELTA_TIME;
 
 class Player;
 class Entity;
@@ -21,7 +22,7 @@ public:
 	~Fiddio();
 
 	void HandleEvents();
-	void Update(double deltaTime);
+	void Update();
 	void Render();
 	void CheckCollisions();
 

@@ -129,6 +129,40 @@ namespace ScriptHandler
 		return true;
 	}
 
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const float functionVariable2)
+	{
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
+
+		if (!GetFunction(fileName, functionName))
+			return false;
+
+		lua_pushlightuserdata(Script, host);
+		lua_pushnumber(Script, functionVariable);
+		lua_pushnumber(Script, functionVariable2);
+		if (!CheckLua(Script, lua_pcall(Script, 3, 1, 0)))
+			return false;
+
+		return true;
+	}
+
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const float functionVariable2, const float functionVariable3)
+	{
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
+
+		if (!GetFunction(fileName, functionName))
+			return false;
+
+		lua_pushlightuserdata(Script, host);
+		lua_pushnumber(Script, functionVariable);
+		lua_pushnumber(Script, functionVariable2);
+		lua_pushnumber(Script, functionVariable3);
+		if (!CheckLua(Script, lua_pcall(Script, 4, 1, 0)))
+			return false;
+
+		return true;
+	}
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable)
 	{
@@ -140,7 +174,24 @@ namespace ScriptHandler
 
 		lua_pushlightuserdata(Script, host);
 		lua_pushnumber(Script, functionVariable);
-		if (!CheckLua(Script, lua_pcall(Script, 1, 1, 0)))
+		if (!CheckLua(Script, lua_pcall(Script, 2, 1, 0)))
+			return false;
+
+		return true;
+	}
+
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const bool functionVariable2)
+	{
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
+
+		if (!GetFunction(fileName, functionName))
+			return false;
+
+		lua_pushlightuserdata(Script, host);
+		lua_pushnumber(Script, functionVariable);
+		lua_pushboolean(Script, functionVariable2);
+		if (!CheckLua(Script, lua_pcall(Script, 3, 1, 0)))
 			return false;
 
 		return true;

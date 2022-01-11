@@ -53,34 +53,34 @@ namespace LevelHandler
 	{
 		Vector2 tilePosition = Vector2(x * TileSize, y * TileSize);
 
-		Entity::Type t = (Entity::Type)type;
+		EntityType t = (EntityType)type;
 
 		switch (t)
 		{
-			case Entity::Type::EMPTY:
+			case EntityType::EMPTY:
 			{
 				break;
 			}
-			case Entity::Type::WALL:
+			case EntityType::WALL:
 			{
-				Entity* wall = new Entity(tilePosition, wallColor, Vector2(TileSize, TileSize), Entity::Type::WALL, true);
+				Entity* wall = new Entity(tilePosition, wallColor, Vector2(TileSize, TileSize), EntityType::WALL, true);
 				CurrentEntities.push_back(wall);
 				break;
 			}
-			case Entity::Type::PLAYER:
+			case EntityType::PLAYER:
 			{
 				Player* player = new Player(tilePosition, playerColor, Vector2(TileSize, TileSize), true);
 				CurrentEntities.push_back(player);
 				ActiveEntities.push_back(player);
 				break;
 			}
-			case Entity::Type::ENEMY:
+			case EntityType::ENEMY:
 			{
 				break;
 			}
-			case Entity::Type::PIPE:
+			case EntityType::PIPE:
 			{
-				Entity* pipe = new Entity(tilePosition, pipeColor, Vector2(TileSize, TileSize), Entity::Type::PIPE, true);
+				Entity* pipe = new Entity(tilePosition, pipeColor, Vector2(TileSize, TileSize), EntityType::PIPE, true);
 				CurrentEntities.push_back(pipe);
 				break;
 			}

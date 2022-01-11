@@ -40,8 +40,18 @@ public:
 	static const Vector2 Right() { return Vector2(1, 0); };
 	static const Vector2 Left() { return Vector2(-1, 0); };
 
-	float x;
-	float y;
+	union
+	{
+		struct
+		{
+			float x;
+			float y;
+		};
+		struct
+		{
+			float v[2];
+		};
+	};
 };
 
 

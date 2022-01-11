@@ -1,17 +1,20 @@
 #include "CollisionHandler.h"
+#include "Vector2.h"
+#include "Entity.h"
+#include <algorithm>
 
-std::set<std::pair<Entity::Type, Entity::Type>> collisionPairs;
+std::set<std::pair<EntityType, EntityType>> collisionPairs;
 
 namespace CollisionHandler
 {
-	void AddCollisionPair(std::pair<Entity::Type, Entity::Type> pair)
+	void AddCollisionPair(std::pair<EntityType, EntityType> pair)
 	{
 		collisionPairs.insert(pair);
 	}
 
-	bool HasCollisionPair(std::pair<Entity::Type, Entity::Type> collisionPair)
+	bool HasCollisionPair(std::pair<EntityType, EntityType> collisionPair)
 	{
-		std::pair<Entity::Type, Entity::Type> otherPair(collisionPair.second, collisionPair.first);
+		std::pair<EntityType, EntityType> otherPair(collisionPair.second, collisionPair.first);
 		if ((collisionPairs.find(collisionPair) != collisionPairs.end())
 			|| collisionPairs.find(otherPair) != collisionPairs.end()) // Checks if set contains the pair or the pair in the other order
 			return true;
@@ -19,37 +22,82 @@ namespace CollisionHandler
 		return false;
 	}
 
-	bool AABB(Entity* left, Entity* right)
+	CollisionDirection AABB(Entity* a, Entity* b, float& t)
 	{
-		if (left->Position.x < right->Position.x + right->ColliderSize.x &&
-			left->Position.x + left->ColliderSize.x > right->Position.x &&
-			left->Position.y < right->Position.y + right->ColliderSize.y &&
-			left->Position.y + left->ColliderSize.y > right->Position.y)
+		if (a->Position.x < b->Position.x + b->ColliderSize.x &&
+			a->Position.x + a->ColliderSize.x > b->Position.x &&
+			a->Position.y < b->Position.y + b->ColliderSize.y &&
+			a->Position.y + a->ColliderSize.y > b->Position.y)
 		{
-			return true;
+			return CollisionDirection::INSIDE;
 		}
-		return false;
-	}
 
-	/*bool VerticalAABB(Entity* left, Entity* right)
-	{
-		if (left->Position.x < right->Position.x + right->ColliderSize.x &&
-			left->Position.x + left->ColliderSize.x > right->Position.x)
+		Vector2 relativeVelocity = (b->CurrentVelocity - a->CurrentVelocity) * DELTA_TIME;
+
+		float tFirst = 0.0f;
+		float tLast = 1.0f;
+
+		Vector2 aBounds = a->Position + a->ColliderSize;
+		aBounds.y *= -1;
+		Vector2 bBounds = b->Position + b->ColliderSize;
+		bBounds.y *= -1;
+
+		for (int i = 0; i < 2; i++)
 		{
-			return true;
-		}
-		return false;
-	}
-
-	bool HorizontalAABB(Entity* left, Entity* right)
-	{
-		if (left->Position.y < right->Position.y + right->ColliderSize.y &&
-			left->Position.y + left->ColliderSize.y > right->Position.y)
+			if (relativeVelocity.v[i] < 0.0f)
 			{
-				return true;
+				if (bBounds.v[i] < a->Position.v[i]) return CollisionDirection::NONE; // b is to the left of a and moving away
+				if (aBounds.v[i] < b->Position.v[i]) tFirst = std::max((aBounds.v[i] - b->Position.v[i]) / relativeVelocity.v[i], tFirst);
+				if (bBounds.v[i] > a->Position.v[i]) tLast = std::min((a->Position.v[i] - bBounds.v[i]) / relativeVelocity.v[i], tLast);
 			}
-		return false;
-	}*/
+			if (relativeVelocity.v[i] > 0.0f)
+			{
+				if (b->Position.v[i] > aBounds.v[i]) return CollisionDirection::NONE;
+				if (bBounds.v[i] < a->Position.v[i]) tFirst = std::max((a->Position.v[i] - bBounds.v[i]) / relativeVelocity.v[i], tFirst);
+				if (aBounds.v[i] > b->Position.v[i]) tLast = std::min((aBounds.v[i] - b->Position.v[i]) / relativeVelocity.v[i], tLast);
+			}
+
+			if (tFirst > tLast) return CollisionDirection::NONE;
+		}
+
+		t = tFirst;
+
+		Vector2 aDelta = a->CurrentVelocity * (t * DELTA_TIME);
+		Vector2 bDelta = b->CurrentVelocity * (t * DELTA_TIME);
+
+		//printf("aDelta: %f,%f, bDelta: %f,%f\n", aDelta.x, aDelta.y, bDelta.x, bDelta.y);
+
+		/*aDelta.y *= -1;
+		bDelta.y *= -1;*/
+
+		a->Position += aDelta;
+		b->Position += bDelta;
+
+		aBounds = a->Position + aDelta + a->ColliderSize;
+		aBounds.y *= -1;
+		bBounds = b->Position + bDelta + b->ColliderSize;
+		bBounds.y *= -1;
+
+		float epsilon = 0.01f;
+
+		CollisionDirection dir = CollisionDirection::NONE;
+
+		if (std::fabsf(a->Position.x - bBounds.x) < epsilon) dir = CollisionDirection::RIGHT;
+		if (std::fabsf(b->Position.x - aBounds.x) < epsilon) dir = CollisionDirection::LEFT;
+		if (std::fabsf(a->Position.y - bBounds.y) < epsilon) 
+		{
+			dir = CollisionDirection::DOWN;
+		}
+		if (std::fabsf(b->Position.y - aBounds.y) < epsilon) 
+		{
+			dir = CollisionDirection::UP;
+		} 
+
+		/*a->Position -= a->CurrentVelocity * TARGET_FRAME_SECONDS * (t);
+		b->Position -= b->CurrentVelocity * TARGET_FRAME_SECONDS * (t);*/
+
+		return dir;
+	}
 
 	void CheckCollisions(std::vector<Entity*> entities)
 	{
@@ -65,25 +113,20 @@ namespace CollisionHandler
 				if (!right->IsActive)
 					continue;
 
-				if (!HasCollisionPair(std::pair<Entity::Type, Entity::Type>(left->T, right->T)))
+				if (!HasCollisionPair(std::pair<EntityType, EntityType>(left->T, right->T)))
 					continue;
 
-				if (AABB(left, right))
-				{
-					left->OnCollision(right);
-					right->OnCollision(left);
-				}
-				/*if (VerticalAABB(left, right))
-				{
-					left->OnVerticalCollision(right);
-					right->OnVerticalCollision(left);
-				}
-				if (HorizontalAABB(left, right))
-				{
-					left->OnHorizontalCollision(right);
-					right->OnHorizontalCollision(left);
-				}*/
+				float t;
+				CollisionDirection dir = AABB(left, right, t);
 
+
+				if (dir != CollisionDirection::NONE)
+				{
+					//printf("%i\n", dir);
+
+					left->OnCollision(right, dir, t);
+					right->OnCollision(left, dir, t);
+				}
 			}
 		}
 	}

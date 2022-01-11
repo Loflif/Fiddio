@@ -1,17 +1,26 @@
 #pragma once
 #include <set>
 #include <vector>
-#include "Entity.h"
+#include "EntityType.h"
 
 class Entity;
 
-extern std::set<std::pair<Entity::Type, Entity::Type>> collisionPairs;
-
+extern const double DELTA_TIME;
 
 namespace CollisionHandler
 {
-	void AddCollisionPair(std::pair<Entity::Type, Entity::Type> pair);
-	bool HasCollisionPair(std::pair<Entity::Type, Entity::Type> collisionPair);
-	bool AABB(Entity* left, Entity* right);
+	enum class CollisionDirection
+	{
+		NONE,
+		UP,
+		RIGHT,
+		DOWN,
+		LEFT,
+		INSIDE
+	};
+
+	void AddCollisionPair(std::pair<EntityType, EntityType> pair);
+	bool HasCollisionPair(std::pair<EntityType, EntityType> collisionPair);
+	CollisionDirection AABB(Entity* a, Entity* b, float& t);
 	void CheckCollisions(std::vector<Entity*> entities);
 }

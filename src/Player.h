@@ -7,19 +7,21 @@ class Player : public Entity
 {
 public:
     Player(Vector2 spawnPos, SDL_Color color, Vector2 colliderSize, bool activate = true);
-    virtual void Update(double deltaTime) override;
-    virtual void OnCollision(Entity* other);
+    virtual void Update() override;
+    virtual void OnCollision(Entity* other, CollisionHandler::CollisionDirection dir, float t);
+    void SetPosition(Vector2 newPosition);
     void SetVelocity(Vector2 newVelocity);
-    Vector2 GetVelocity();
+    void SetVelocityX(float x);
+    void SetVelocityY(float y);
 private:
-    void ChangeVelocity(double deltaTime);
 
-    Vector2 CurrentVelocity = Vector2(0, 0);
 
     bool IsOnGround = true;
 
     const char* ScriptFile = "src/Player.lua";
 };
 
+static int lua_SetPosition(lua_State* L);
 static int lua_SetVelocity(lua_State* L);
-static int lua_GetVelocity(lua_State* L);
+static int lua_SetVelocityX(lua_State* L);
+static int lua_SetVelocityY(lua_State* L);
