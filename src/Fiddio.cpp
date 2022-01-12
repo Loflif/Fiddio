@@ -30,10 +30,8 @@ void Fiddio::Init()
 
 	WINDOW_WIDTH = ScriptHandler::GetTableInt("src/Settings.lua", "settings", "WindowWidth");
 	WINDOW_HEIGHT = ScriptHandler::GetTableInt("src/Settings.lua", "settings", "WindowHeight");
+	WINDOW_SCROLL_THRESHOLD = ScriptHandler::GetTableInt("src/Settings.lua", "settings", "WindowScrollThreshold");
 	GAME_TITLE = ScriptHandler::GetTableString("src/Settings.lua", "settings", "GameTitle");
-
-	SCREEN_CENTER.x = WINDOW_WIDTH * 0.5f;
-	SCREEN_CENTER.y = WINDOW_HEIGHT * 0.5f;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
 	{
@@ -58,6 +56,8 @@ void Fiddio::Init()
 	SDL_SetRenderDrawColor(Renderer, 146, 144, 255, 1);
 
 	IsRunning = true;
+
+	PLAYER = nullptr;
 }
 
 void Fiddio::AddCollisionPairs()
@@ -110,6 +110,14 @@ void Fiddio::Update()
 	{
 		entity->Update();
 	}
+
+	if (PLAYER == nullptr)
+		return;
+	
+	if (PLAYER->Position.x > CAMERA_POS.x + WINDOW_SCROLL_THRESHOLD)
+	{
+		CAMERA_POS.x += PLAYER->Position.x - CAMERA_POS.x;
+	}
 }
 
 void Fiddio::Render()
@@ -119,12 +127,12 @@ void Fiddio::Render()
 
 	for (auto entity : StaticEntities)
 	{
-		entity->Render(Renderer);
+		entity->Render(Renderer, CAMERA_POS);
 	}
 
 	for (auto entity : DynamicEntities)
 	{
-		entity->Render(Renderer);
+		entity->Render(Renderer, CAMERA_POS);
 	}
 
 	SDL_RenderPresent(Renderer);

@@ -3,18 +3,19 @@
 #include "Key.h"
 #include "Vector2.h"
 
+class Player;
+class Entity;
+
 // Being set through lua to avoid compiling
 static int WINDOW_WIDTH;
 static int WINDOW_HEIGHT;
-
-static Vector2 SCREEN_CENTER;
+static int WINDOW_SCROLL_THRESHOLD;
 
 const static char* GAME_TITLE;
+static Vector2 CAMERA_POS = Vector2(0, 0);
+static Player* PLAYER = nullptr;
 
 extern const double DELTA_TIME;
-
-class Player;
-class Entity;
 
 class Fiddio
 {
@@ -28,7 +29,7 @@ public:
 	void CheckCollisions();
 
 	bool Running() { return IsRunning; }
-	
+
 private:
 	void Init();
 	void AddCollisionPairs();

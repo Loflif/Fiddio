@@ -33,6 +33,11 @@ namespace LevelHandler
 		{
 			delete entity;
 		}
+
+		for (auto entity : DynamicEntities)
+		{
+			delete entity;
+		}
 	}
 
 	Vector2 LevelOneSize = Vector2(0, 0);
@@ -51,7 +56,7 @@ namespace LevelHandler
 
 	void SetTile(int x, int y, int type)
 	{
-		Vector2 tilePosition = Vector2(x * TileSize, y * TileSize);
+		Vector2 tilePosition = Vector2((x -1) * TileSize, y * TileSize);
 
 		EntityType t = (EntityType)type;
 
@@ -70,6 +75,7 @@ namespace LevelHandler
 			case EntityType::PLAYER:
 			{
 				Player* player = new Player(tilePosition, playerColor, Vector2(TileSize, TileSize), true);
+				PLAYER = player;
 				DynamicEntities.push_back(player);
 				break;
 			}

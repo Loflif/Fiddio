@@ -15,10 +15,9 @@ public:
 
 	~Entity();
 
-	virtual void Render(SDL_Renderer* renderer);
+	virtual void Render(SDL_Renderer* renderer, Vector2 cameraPos);
 	virtual void Update();
 	virtual void OnCollision(Entity* other, CollisionHandler::HitInfo hit);
-	//virtual void OnCollision(Entity* other, CollisionHandler::CollisionDirection dir, float t);
 	
 	Vector2 Position = Vector2(0, 0);
 	Vector2 CurrentVelocity = Vector2(0, 0);

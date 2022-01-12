@@ -21,8 +21,15 @@ void Player::Update()
 	bool isFalling = CurrentVelocity.y < 0;
 	ScriptHandler::CallFunctionNoReturn(ScriptFile, "AddGravity", this, DELTA_TIME, CurrentVelocity.y, isFalling);
 
-	if (KeyPressed(Key::W) || KeyPressed(Key::Space))
+	/*float epsilon = 100.0f;
+	IsOnGround = (std::abs(CurrentVelocity.y) < epsilon);*/
+
+	if (IsOnGround &&
+		(KeyPressed(Key::W) || KeyPressed(Key::Space)))
+	{
 		ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnJump", this, DELTA_TIME, CurrentVelocity.y);
+		IsOnGround = false;
+	}
 
 	if (KeyDown(Key::A) || KeyDown(Key::Left))
 		ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnAccelerateLeft", this, DELTA_TIME, CurrentVelocity.x);
@@ -34,30 +41,6 @@ void Player::Update()
 		ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnDecelerate", this, DELTA_TIME, CurrentVelocity.x);
 }
 
-//void Player::OnCollision(Entity* other, CollisionHandler::CollisionDirection dir, float t)
-//{
-//	if (other->T == EntityType::WALL)
-//	{
-//		CurrentVelocity = Vector2(0.0f, 0.0f);
-//		if (dir == CollisionHandler::CollisionDirection::INSIDE)
-//		{
-//			/*float distanceY = other->Position.y - Position.y;
-//			float penetrationY = (ColliderSize.y) - distanceY;
-//
-//			Position.y -= penetrationY;*/
-//
-//			/*float distanceX = other->Position.x - Position.x;
-//			float penetrationX = (ColliderSize.x) - distanceX;
-//
-//			Position.x += penetrationX;*/
-//
-//			/*float distanceX = Position.x - other->Position.x;
-//			float penetrationX = distanceX - (other->ColliderSize.x / 2 + ColliderSize.x / 2);
-//
-//			Position.x += penetrationX;*/
-//		}
-//	}
-//}
 
 void Player::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
 {
@@ -65,12 +48,10 @@ void Player::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
 	{
 		Vector2 recoilVelocity = CurrentVelocity.Dot(hit.normal) * hit.normal;
 		CurrentVelocity -= recoilVelocity;
-
-		//Position += CurrentVelocity * (hit.t * epsilon)* DELTA_TIME;
-
-		
-
-		//CurrentVelocity = Vector2(0, 0);
+		if (hit.normal.y < 0)
+		{
+			IsOnGround = true;
+		}
 	}
 }
 
