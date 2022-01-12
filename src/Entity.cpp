@@ -1,6 +1,5 @@
 #include "Entity.h"
 
-
 Entity::Entity(Vector2 spawnPos, SDL_Color color, Vector2 colliderSize, EntityType type, bool activate)
 	: Position(spawnPos),
 	T(type),
@@ -29,6 +28,10 @@ void Entity::Update()
 
 }
 
-void Entity::OnCollision(Entity* other, CollisionHandler::CollisionDirection dir, float t)
+void Entity::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
 {
 }
+
+//void Entity::OnCollision(Entity* other, CollisionHandler::CollisionDirection dir, float t)
+//{
+//}

@@ -6,8 +6,8 @@
 #include "Player.h"
 #include "Fiddio.h"
 
-std::vector<Entity*> CurrentEntities;
-std::vector<Entity*> ActiveEntities;
+std::vector<Entity*> StaticEntities;
+std::vector<Entity*> DynamicEntities;
 
 namespace LevelHandler
 {
@@ -29,7 +29,7 @@ namespace LevelHandler
 
 	void CleanUp()
 	{
-		for (auto entity : CurrentEntities)
+		for (auto entity : StaticEntities)
 		{
 			delete entity;
 		}
@@ -64,14 +64,13 @@ namespace LevelHandler
 			case EntityType::WALL:
 			{
 				Entity* wall = new Entity(tilePosition, wallColor, Vector2(TileSize, TileSize), EntityType::WALL, true);
-				CurrentEntities.push_back(wall);
+				StaticEntities.push_back(wall);
 				break;
 			}
 			case EntityType::PLAYER:
 			{
 				Player* player = new Player(tilePosition, playerColor, Vector2(TileSize, TileSize), true);
-				CurrentEntities.push_back(player);
-				ActiveEntities.push_back(player);
+				DynamicEntities.push_back(player);
 				break;
 			}
 			case EntityType::ENEMY:
@@ -81,7 +80,7 @@ namespace LevelHandler
 			case EntityType::PIPE:
 			{
 				Entity* pipe = new Entity(tilePosition, pipeColor, Vector2(TileSize, TileSize), EntityType::PIPE, true);
-				CurrentEntities.push_back(pipe);
+				StaticEntities.push_back(pipe);
 				break;
 			}
 

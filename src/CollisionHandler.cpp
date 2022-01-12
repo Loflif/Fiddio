@@ -1,5 +1,4 @@
 #include "CollisionHandler.h"
-#include "Vector2.h"
 #include "Entity.h"
 #include <algorithm>
 
@@ -7,6 +6,8 @@ std::set<std::pair<EntityType, EntityType>> collisionPairs;
 
 namespace CollisionHandler
 {
+	std::vector<Collision> collisions;
+
 	void AddCollisionPair(std::pair<EntityType, EntityType> pair)
 	{
 		collisionPairs.insert(pair);
@@ -22,7 +23,93 @@ namespace CollisionHandler
 		return false;
 	}
 
-	CollisionDirection AABB(Entity* a, Entity* b, float& t)
+	bool RayIntersectsAABB(const Vector2 start, const Vector2 dir, const AABB aabb, HitInfo& hitInfo)
+	{
+		Vector2 nearHit
+		{
+			(aabb.min.x - start.x) / dir.x,
+			(aabb.min.y - start.y) / dir.y 
+		};
+
+		Vector2 farHit
+		{
+			(aabb.min.x + aabb.dim.x - start.x) / dir.x,
+			(aabb.min.y + aabb.dim.y - start.y) / dir.y 
+		};
+
+		auto swapIf = [](float& a, float& b)
+		{
+			if (a > b)
+			{
+				float temp = a;
+				a = b;
+				b = temp;
+			}
+		};
+		swapIf(nearHit.x, farHit.x);
+		swapIf(nearHit.y, farHit.y);
+
+		// ray never intersects
+		if (nearHit.x > farHit.y ||
+			nearHit.y > farHit.x) return false;
+
+		float t1 = std::max(nearHit.x, nearHit.y);
+		float t2 = std::min(farHit.x, farHit.y);
+
+		//intersection is behind us
+		if (t1 < 0) return false;
+
+		// If we got here, the hit happened.
+
+		// Calculate the hit point
+		hitInfo.point.x = start.x + (dir.x * t1);
+		hitInfo.point.y = start.y + (dir.y * t1);
+
+		// And the normal
+		if (nearHit.x > nearHit.y)
+		{
+			// We hit in X
+			if (dir.x < 0)
+				hitInfo.normal = { 1, 0 };
+			else
+				hitInfo.normal = { -1, 0 };
+		}
+		else
+		{
+			// We hit in Y
+			if (dir.y < 0)
+				hitInfo.normal = { 0, 1 };
+			else
+				hitInfo.normal = { 0, -1 };
+		}
+
+		hitInfo.t = t1;
+
+		return true;
+	}
+
+	bool SweptAABBtoAABB(const AABB a, const AABB b, Vector2 relDisplacement, HitInfo& hitInfo)
+	{
+		// early-out if nothing is moving.
+		if (relDisplacement.x == 0 && relDisplacement.y == 0) return false;
+
+		AABB minkowski
+		{
+			b.min.x - a.dim.x * 0.5f,
+			b.min.y - a.dim.y * 0.5f,
+			a.dim.x + b.dim.x,
+			a.dim.y + b.dim.y 
+		};
+		Vector2 aCenter
+		{
+			a.min.x + a.dim.x * 0.5f,
+			a.min.y + a.dim.y * 0.5f 
+		};
+
+		return (RayIntersectsAABB(aCenter, relDisplacement, minkowski, hitInfo) && hitInfo.t < 1);
+	}
+
+	CollisionDirection CheckAABB(Entity* a, Entity* b, float& t)
 	{
 		if (a->Position.x < b->Position.x + b->ColliderSize.x &&
 			a->Position.x + a->ColliderSize.x > b->Position.x &&
@@ -37,24 +124,26 @@ namespace CollisionHandler
 		float tFirst = 0.0f;
 		float tLast = 1.0f;
 
-		Vector2 aBounds = a->Position + a->ColliderSize;
-		aBounds.y *= -1;
-		Vector2 bBounds = b->Position + b->ColliderSize;
-		bBounds.y *= -1;
+		Vector2 aMin = a->Position;
+		Vector2 aMax = a->Position + a->ColliderSize;
+		aMax.y *= -1; // y is flipped in SDL
+		Vector2 bMin = b->Position;
+		Vector2 bMax = b->Position + b->ColliderSize;
+		bMax.y *= -1; // y is flipped in SDL
 
 		for (int i = 0; i < 2; i++)
 		{
 			if (relativeVelocity.v[i] < 0.0f)
 			{
-				if (bBounds.v[i] < a->Position.v[i]) return CollisionDirection::NONE; // b is to the left of a and moving away
-				if (aBounds.v[i] < b->Position.v[i]) tFirst = std::max((aBounds.v[i] - b->Position.v[i]) / relativeVelocity.v[i], tFirst);
-				if (bBounds.v[i] > a->Position.v[i]) tLast = std::min((a->Position.v[i] - bBounds.v[i]) / relativeVelocity.v[i], tLast);
+				if (bMax.v[i] < aMin.v[i]) return CollisionDirection::NONE; // b is to the left of a and moving away
+				if (aMax.v[i] < bMin.v[i]) tFirst = std::max((aMax.v[i] - bMin.v[i]) / relativeVelocity.v[i], tFirst);
+				if (bMax.v[i] > aMin.v[i]) tLast = std::min((aMin.v[i] - bMax.v[i]) / relativeVelocity.v[i], tLast);
 			}
 			if (relativeVelocity.v[i] > 0.0f)
 			{
-				if (b->Position.v[i] > aBounds.v[i]) return CollisionDirection::NONE;
-				if (bBounds.v[i] < a->Position.v[i]) tFirst = std::max((a->Position.v[i] - bBounds.v[i]) / relativeVelocity.v[i], tFirst);
-				if (aBounds.v[i] > b->Position.v[i]) tLast = std::min((aBounds.v[i] - b->Position.v[i]) / relativeVelocity.v[i], tLast);
+				if (bMin.v[i] > aMax.v[i]) return CollisionDirection::NONE;
+				if (bMax.v[i] < aMin.v[i]) tFirst = std::max((aMin.v[i] - bMax.v[i]) / relativeVelocity.v[i], tFirst);
+				if (aMax.v[i] > bMin.v[i]) tLast = std::min((aMax.v[i] - bMin.v[i]) / relativeVelocity.v[i], tLast);
 			}
 
 			if (tFirst > tLast) return CollisionDirection::NONE;
@@ -65,67 +154,97 @@ namespace CollisionHandler
 		Vector2 aDelta = a->CurrentVelocity * (t * DELTA_TIME);
 		Vector2 bDelta = b->CurrentVelocity * (t * DELTA_TIME);
 
-		//printf("aDelta: %f,%f, bDelta: %f,%f\n", aDelta.x, aDelta.y, bDelta.x, bDelta.y);
-
-		/*aDelta.y *= -1;
-		bDelta.y *= -1;*/
-
 		a->Position += aDelta;
 		b->Position += bDelta;
 
-		aBounds = a->Position + aDelta + a->ColliderSize;
-		aBounds.y *= -1;
-		bBounds = b->Position + bDelta + b->ColliderSize;
-		bBounds.y *= -1;
+		aMax = a->Position + aDelta + a->ColliderSize;
+		bMax = b->Position + bDelta + b->ColliderSize;
 
-		float epsilon = 0.01f;
+		float epsilon = 0.0001f;
 
 		CollisionDirection dir = CollisionDirection::NONE;
 
-		if (std::fabsf(a->Position.x - bBounds.x) < epsilon) dir = CollisionDirection::RIGHT;
-		if (std::fabsf(b->Position.x - aBounds.x) < epsilon) dir = CollisionDirection::LEFT;
-		if (std::fabsf(a->Position.y - bBounds.y) < epsilon) 
-		{
-			dir = CollisionDirection::DOWN;
-		}
-		if (std::fabsf(b->Position.y - aBounds.y) < epsilon) 
-		{
-			dir = CollisionDirection::UP;
-		} 
-
-		/*a->Position -= a->CurrentVelocity * TARGET_FRAME_SECONDS * (t);
-		b->Position -= b->CurrentVelocity * TARGET_FRAME_SECONDS * (t);*/
+		if (std::fabsf(a->Position.x - bMax.x) < epsilon) dir = CollisionDirection::RIGHT;
+		if (std::fabsf(b->Position.x - aMax.x) < epsilon) dir = CollisionDirection::LEFT;
+		if (std::fabsf(a->Position.y - bMax.y) < epsilon) dir = CollisionDirection::DOWN;
+		if (std::fabsf(b->Position.y - aMax.y) < epsilon) dir = CollisionDirection::UP; 
 
 		return dir;
 	}
 
-	void CheckCollisions(std::vector<Entity*> entities)
+	void CheckCollisions(std::vector<Entity*> dynamicEntities, std::vector<Entity*> staticEntities)
 	{
-		for (int i = 0; i < entities.size(); i++) // Check new Collisions
+		collisions.clear();
+
+		for (int i = 0; i < dynamicEntities.size(); i++) // Check new Collisions
 		{
-			Entity* left = entities[i];
+			Entity* left = dynamicEntities[i];
 			if (!left->IsActive)
 				continue;
 
-			for (int j = i + 1; j < entities.size(); j++)
+			for (int j = i + 1; j < dynamicEntities.size(); j++)
 			{
-				Entity* right = entities[j];
+				Entity* right = dynamicEntities[j];
 				if (!right->IsActive)
 					continue;
 
 				if (!HasCollisionPair(std::pair<EntityType, EntityType>(left->T, right->T)))
 					continue;
 
-				float t;
-				CollisionDirection dir = AABB(left, right, t);
+				HitInfo hitInfo;
+				AABB a{ left->Position.x, left->Position.y, left->ColliderSize.x, left->ColliderSize.y };
+				AABB b{ right->Position.x, right->Position.y, right->ColliderSize.x, right->ColliderSize.y };
+				Vector2 relativeDisplacement = (left->CurrentVelocity - right->CurrentVelocity) * DELTA_TIME;
 
-
-				if (dir != CollisionDirection::NONE)
+				if (SweptAABBtoAABB(a, b, relativeDisplacement, hitInfo))
 				{
-					//printf("%i\n", dir);
+					collisions.push_back({ left, right, hitInfo });
+				}
+			}
+			for (int j = 0; j < staticEntities.size(); j++)
+			{
+				Entity* right = staticEntities[j];
+				if (!right->IsActive)
+					continue;
 
-					left->OnCollision(right, dir, t);
-					right->OnCollision(left, dir, t);
+				if (!HasCollisionPair(std::pair<EntityType, EntityType>(left->T, right->T)))
+					continue;
+
+				HitInfo hitInfo;
+				AABB a{ left->Position.x, left->Position.y, left->ColliderSize.x, left->ColliderSize.y };
+				AABB b{ right->Position.x, right->Position.y, right->ColliderSize.x, right->ColliderSize.y };
+				Vector2 relativeDisplacement = (left->CurrentVelocity - right->CurrentVelocity) * DELTA_TIME;
+
+				if (SweptAABBtoAABB(a, b, relativeDisplacement, hitInfo))
+				{
+					collisions.push_back({ left, right, hitInfo });
+				}
+			}
+			if (collisions.size() > 0)
+			{
+				std::sort(collisions.begin(), collisions.end(),
+					[](const Collision& a, Collision& b) -> bool
+					{
+						return a.hit.t < b.hit.t;
+					});
+				collisions[0].a->OnCollision(collisions[0].b, collisions[0].hit);
+				collisions[0].b->OnCollision(collisions[0].a, collisions[0].hit);
+
+				for (int i = 1; i < collisions.size(); i++)
+				{
+					Entity* left = collisions[i].a;
+					Entity* right = collisions[i].b;
+
+					AABB a{ left->Position.x, left->Position.y, left->ColliderSize.x, left->ColliderSize.y };
+					AABB b{ right->Position.x, right->Position.y, right->ColliderSize.x, right->ColliderSize.y };
+
+					Vector2 relativeDisplacement = (left->CurrentVelocity - right->CurrentVelocity) * DELTA_TIME;
+
+					if (SweptAABBtoAABB(a, b, relativeDisplacement, collisions[i].hit))
+					{
+						collisions[i].a->OnCollision(collisions[i].b, collisions[i].hit);
+						collisions[i].b->OnCollision(collisions[i].a, collisions[i].hit);
+					}
 				}
 			}
 		}

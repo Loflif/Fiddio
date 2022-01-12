@@ -6,8 +6,8 @@
 class Entity;
 struct lua_State;
 
-extern std::vector<Entity*> CurrentEntities;
-extern std::vector<Entity*> ActiveEntities;
+extern std::vector<Entity*> StaticEntities;
+extern std::vector<Entity*> DynamicEntities;
 
 namespace LevelHandler
 {

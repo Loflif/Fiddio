@@ -106,7 +106,7 @@ void Fiddio::HandleEvents()
 
 void Fiddio::Update()
 {
-	for (auto entity : ActiveEntities)
+	for (auto entity : DynamicEntities)
 	{
 		entity->Update();
 	}
@@ -117,7 +117,12 @@ void Fiddio::Render()
 	SDL_SetRenderDrawColor(Renderer, 92, 148, 252, 1);
 	SDL_RenderClear(Renderer);
 
-	for (auto entity : CurrentEntities)
+	for (auto entity : StaticEntities)
+	{
+		entity->Render(Renderer);
+	}
+
+	for (auto entity : DynamicEntities)
 	{
 		entity->Render(Renderer);
 	}
@@ -127,7 +132,7 @@ void Fiddio::Render()
 
 void Fiddio::CheckCollisions()
 {
-	CollisionHandler::CheckCollisions(CurrentEntities);
+	CollisionHandler::CheckCollisions(DynamicEntities, StaticEntities);
 }
 
 bool KeyDown(Key key)

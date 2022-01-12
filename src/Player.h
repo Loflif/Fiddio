@@ -8,16 +8,14 @@ class Player : public Entity
 public:
     Player(Vector2 spawnPos, SDL_Color color, Vector2 colliderSize, bool activate = true);
     virtual void Update() override;
-    virtual void OnCollision(Entity* other, CollisionHandler::CollisionDirection dir, float t);
+    virtual void OnCollision(Entity* other, CollisionHandler::HitInfo hit) override;
+    //virtual void OnCollision(Entity* other, CollisionHandler::CollisionDirection dir, float t) override;
     void SetPosition(Vector2 newPosition);
     void SetVelocity(Vector2 newVelocity);
     void SetVelocityX(float x);
     void SetVelocityY(float y);
 private:
-
-
     bool IsOnGround = true;
-
     const char* ScriptFile = "src/Player.lua";
 };
 
