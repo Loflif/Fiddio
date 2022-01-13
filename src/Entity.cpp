@@ -4,6 +4,7 @@ Entity::Entity(Vector2 spawnPos, SDL_Color color, Vector2 colliderSize, EntityTy
 	: Position(spawnPos),
 	T(type),
 	IsActive(activate),
+	IsVisible(activate),
 	Color(color),
 	ColliderSize(colliderSize) {}
 
@@ -30,4 +31,11 @@ void Entity::Update()
 
 void Entity::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
 {
+
+}
+
+void Entity::Die()
+{
+	IsActive = false;
+	IsVisible = false;
 }

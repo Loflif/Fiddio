@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Goomba.cpp" />
     <ClCompile Include="src\CollisionHandler.cpp" />
     <ClCompile Include="src\LevelHandler.cpp" />
     <ClCompile Include="src\Player.cpp" />
@@ -30,11 +31,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="src\Goomba.lua" />
     <None Include="src\LevelLoader.lua" />
     <None Include="src\Player.lua" />
     <None Include="src\Settings.lua" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Goomba.h" />
     <ClInclude Include="src\CollisionHandler.h" />
     <ClInclude Include="src\EntityType.h" />
     <ClInclude Include="src\LevelHandler.h" />

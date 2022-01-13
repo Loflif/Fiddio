@@ -1,28 +1,40 @@
 Acceleration = 500
 Deceleration = 600
 MaxMoveSpeed = 300
-Gravity = 2000
-FallingGravity = 3000
-JumpForce = 700
+Gravity = 3000
+FallingGravity = 5000
+JumpForce = 900
+BounceForce = 500
 
 function OnStart(host)
 
 end
 
-function OnUpdate(host, deltaTime)
-	--print("[LUA]: OnUpdate was called with deltaTime:" .. deltaTime)
+function OnUpdate(host, deltaTime, velocityX, velocityY, movementInput)
+	local frameVelocityX = velocityX
+	local frameVelocityY = velocityY
+
+	--print("[LUA]: OnUpdate was called")
+	frameVelocityY = AddGravity(deltaTime, frameVelocityY)
+
+	if movementInput == 0 then
+		frameVelocityX = Decelerate(deltaTime, frameVelocityX)
+	else 
+		frameVelocityX = Accelerate(deltaTime, frameVelocityX, movementInput)
+	end
+	_SetVelocity(host, frameVelocityX, frameVelocityY)
 end
 
-function AddGravity(host, deltaTime, velocityY, falling)
-	--print("[LUA]: AddGravity was called with deltaTime:" .. deltaTime)
-	frameGravity = 0
-	if falling then
-		frameGravity = FallingGravity * deltaTime
+function AddGravity(deltaTime, velocityY)
+	--print("[LUA]: AddGravity was called")
+	
+	if velocityY > 0 then
+		velocityY = velocityY + (FallingGravity * deltaTime)
 	else
-		frameGravity = Gravity * deltaTime
+		velocityY = velocityY + (Gravity * deltaTime)
 	end
-	velocityY = velocityY + frameGravity
-	_SetVelocityY(host, velocityY)
+	
+	return velocityY
 end
 
 function OnJump(host, velocityY)
@@ -31,28 +43,15 @@ function OnJump(host, velocityY)
 	_SetVelocityY(host, velocityY)
 end
 
-function OnAccelerateRight(host, deltaTime, velocityX)
-	--print("[LUA]: OnAccelerateRight was called")
-	if velocityX < MaxMoveSpeed then
-		velocityX = velocityX + (Acceleration * deltaTime)
-	else
-		velocityX = MaxMoveSpeed
-	end
-	
-	_SetVelocityX(host, velocityX)
+function OnBounce(host)
+	--print("[LUA]: OnBounce was called")
+	velocityY = - BounceForce
+	_SetVelocityY(host, velocityY)
 end
 
-function OnAccelerateLeft(host, deltaTime, velocityX)
-	--print("[LUA]: OnAccelerateLeft was called")
-	if velocityX > -MaxMoveSpeed then
-		velocityX = velocityX - (Acceleration * deltaTime)
-	else
-		velocityX = -MaxMoveSpeed
-	end
-	_SetVelocityX(host, velocityX)
-end
 
-function OnDecelerate(host, deltaTime, velocityX)
+function Decelerate(deltaTime, velocityX)
+	--print("[LUA]: Decelerate was called")
 	potentialDeceleration = Deceleration * deltaTime	
 
 	if velocityX > potentialDeceleration then
@@ -62,5 +61,23 @@ function OnDecelerate(host, deltaTime, velocityX)
 	else
 		velocityX = 0
 	end
-	_SetVelocityX(host, velocityX)
+	return velocityX
+end
+
+function Accelerate(deltaTime, velocityX, movementInput)
+	--print("[LUA]: Accelerate was called with: " .. movementInput .. " input")
+	if movementInput == 1 then
+		if velocityX < MaxMoveSpeed then
+			velocityX = velocityX + (Acceleration * deltaTime)
+		else
+			velocityX = MaxMoveSpeed
+		end
+	else
+		if velocityX > -MaxMoveSpeed then
+			velocityX = velocityX - (Acceleration * deltaTime)
+		else
+			velocityX = -MaxMoveSpeed
+		end
+	end
+	return velocityX
 end

@@ -164,6 +164,45 @@ namespace ScriptHandler
 		return true;
 	}
 
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const float functionVariable2, const float functionVariable3, const int functionVariable4)
+	{
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
+
+		if (!GetFunction(fileName, functionName))
+			return false;
+
+		lua_pushlightuserdata(Script, host);
+		lua_pushnumber(Script, functionVariable);
+		lua_pushnumber(Script, functionVariable2);
+		lua_pushnumber(Script, functionVariable3);
+		lua_pushinteger(Script, functionVariable4);
+		if (!CheckLua(Script, lua_pcall(Script, 5, 1, 0)))
+			return false;
+
+		return true;
+	}
+
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const float functionVariable, const float functionVariable2, const float functionVariable3, const float functionVariable4, const int functionVariable5)
+	{
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
+
+		if (!GetFunction(fileName, functionName))
+			return false;
+
+		lua_pushlightuserdata(Script, host);
+		lua_pushnumber(Script, functionVariable);
+		lua_pushnumber(Script, functionVariable2);
+		lua_pushnumber(Script, functionVariable3);
+		lua_pushnumber(Script, functionVariable4);
+		lua_pushinteger(Script, functionVariable5);
+		if (!CheckLua(Script, lua_pcall(Script, 6, 1, 0)))
+			return false;
+
+		return true;
+	}
+
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable)
 	{
 		if (!CheckLua(Script, luaL_dofile(Script, fileName)))

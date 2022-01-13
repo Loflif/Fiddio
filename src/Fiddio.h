@@ -13,8 +13,6 @@ static int WINDOW_SCROLL_THRESHOLD;
 
 const static char* GAME_TITLE;
 static Vector2 CAMERA_POS = Vector2(0, 0);
-static Player* PLAYER = nullptr;
-
 extern const double DELTA_TIME;
 
 class Fiddio
@@ -33,6 +31,8 @@ public:
 private:
 	void Init();
 	void AddCollisionPairs();
+	void HandleCamera();
+	void ConstrainPlayer();
 
 	bool IsRunning = false;
 	

@@ -39,12 +39,16 @@
     <ClCompile Include="src\CollisionHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Goomba.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="src\Settings.lua" />
     <None Include="src\LevelLoader.lua" />
     <None Include="src\Player.lua" />
+    <None Include="src\Goomba.lua" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Fiddio.h">
@@ -75,6 +79,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\EntityType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Goomba.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

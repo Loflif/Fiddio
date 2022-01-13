@@ -5,6 +5,8 @@ enum class EntityType
 	EMPTY = 0,
 	WALL = 1,
 	PLAYER = 2,
-	ENEMY = 3,
+	GOOMBA = 3,
 	PIPE = 4,
+	FLOATING_BLOCK = 5,
+	GROUND_BLOCK = 6
 };

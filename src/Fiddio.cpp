@@ -57,12 +57,37 @@ void Fiddio::Init()
 
 	IsRunning = true;
 
-	PLAYER = nullptr;
 }
 
 void Fiddio::AddCollisionPairs()
 {
 	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::WALL));
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::PIPE));
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::GOOMBA));
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::FLOATING_BLOCK));
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::GROUND_BLOCK));
+
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::GOOMBA, EntityType::PIPE));
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::GOOMBA, EntityType::GROUND_BLOCK));
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::GOOMBA, EntityType::FLOATING_BLOCK));
+}
+
+void Fiddio::HandleCamera()
+{
+	float desiredScreenPosition = CAMERA_POS.x + WINDOW_SCROLL_THRESHOLD;
+	if (PLAYER->Position.x > desiredScreenPosition)
+	{
+		CAMERA_POS.x += PLAYER->Position.x - desiredScreenPosition;
+	}
+}
+
+void Fiddio::ConstrainPlayer()
+{
+	if (PLAYER->Position.x < CAMERA_POS.x)
+	{
+		PLAYER->Position.x = CAMERA_POS.x;
+		PLAYER->CurrentVelocity.x = 0.0f;
+	}
 }
 
 
@@ -106,18 +131,16 @@ void Fiddio::HandleEvents()
 
 void Fiddio::Update()
 {
-	for (auto entity : DynamicEntities)
+	for (auto& entity : DYNAMIC_ENTITIES)
 	{
+		if (!entity->IsActive)
+			continue;
+
 		entity->Update();
 	}
 
-	if (PLAYER == nullptr)
-		return;
-	
-	if (PLAYER->Position.x > CAMERA_POS.x + WINDOW_SCROLL_THRESHOLD)
-	{
-		CAMERA_POS.x += PLAYER->Position.x - CAMERA_POS.x;
-	}
+	HandleCamera();
+	ConstrainPlayer();
 }
 
 void Fiddio::Render()
@@ -125,14 +148,20 @@ void Fiddio::Render()
 	SDL_SetRenderDrawColor(Renderer, 92, 148, 252, 1);
 	SDL_RenderClear(Renderer);
 
-	for (auto entity : StaticEntities)
+	for (auto& entity : STATIC_ENTITIES)
 	{
-		entity->Render(Renderer, CAMERA_POS);
+		if (!entity->IsVisible)
+			continue;
+
+		entity->Render(Renderer, -CAMERA_POS);
 	}
 
-	for (auto entity : DynamicEntities)
+	for (auto& entity : DYNAMIC_ENTITIES)
 	{
-		entity->Render(Renderer, CAMERA_POS);
+		if (!entity->IsVisible)
+			continue;
+
+		entity->Render(Renderer, -CAMERA_POS);
 	}
 
 	SDL_RenderPresent(Renderer);
@@ -140,7 +169,7 @@ void Fiddio::Render()
 
 void Fiddio::CheckCollisions()
 {
-	CollisionHandler::CheckCollisions(DynamicEntities, StaticEntities);
+	CollisionHandler::CheckCollisions(DYNAMIC_ENTITIES, STATIC_ENTITIES);
 }
 
 bool KeyDown(Key key)

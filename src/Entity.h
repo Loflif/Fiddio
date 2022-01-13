@@ -18,6 +18,7 @@ public:
 	virtual void Render(SDL_Renderer* renderer, Vector2 cameraPos);
 	virtual void Update();
 	virtual void OnCollision(Entity* other, CollisionHandler::HitInfo hit);
+	virtual void Die();
 	
 	Vector2 Position = Vector2(0, 0);
 	Vector2 CurrentVelocity = Vector2(0, 0);
@@ -25,6 +26,7 @@ public:
 
 	EntityType T;
 	bool IsActive = false;
+	bool IsVisible = false;
 protected:
 	SDL_Color Color;
 };

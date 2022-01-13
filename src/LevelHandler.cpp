@@ -4,10 +4,12 @@
 
 #include "Entity.h"
 #include "Player.h"
+#include "Goomba.h"
 #include "Fiddio.h"
 
-std::vector<Entity*> StaticEntities;
-std::vector<Entity*> DynamicEntities;
+std::vector<Entity*> STATIC_ENTITIES;
+std::vector<Entity*> DYNAMIC_ENTITIES;
+Player* PLAYER;
 
 namespace LevelHandler
 {
@@ -15,11 +17,15 @@ namespace LevelHandler
 	{
 		if (!ScriptHandler::RegisterFunction("src/LevelLoader.lua", "_LoadLevel", lua_LoadLevel))
 		{
-			std::cout << "LevelHandler.Init() could not register function wrap_LoadLevel in scripthandler " << std::endl;
+			std::cout << "LevelHandler.Init() could not register function lua_LoadLevel in scripthandler " << std::endl;
 		}
 		if (!ScriptHandler::RegisterFunction("src/LevelLoader.lua", "_SetTile", lua_SetTile))
 		{
-			std::cout << "LevelHandler.Init() could not register function wrap_SetTile in scripthandler " << std::endl;
+			std::cout << "LevelHandler.Init() could not register function lua_SetTile in scripthandler " << std::endl;
+		}
+		if (!ScriptHandler::RegisterFunction("src/LevelLoader.lua", "_SpawnGoomba", lua_SpawnGoomba))
+		{
+			std::cout << "LevelHandler.Init() could not register function lua_SpawnGoomba in scripthandler " << std::endl;
 		}
 		if (!ScriptHandler::CallFunctionNoReturn("src/LevelLoader.lua", "LoadLevel", 1))
 		{
@@ -29,12 +35,12 @@ namespace LevelHandler
 
 	void CleanUp()
 	{
-		for (auto entity : StaticEntities)
+		for (auto entity : STATIC_ENTITIES)
 		{
 			delete entity;
 		}
 
-		for (auto entity : DynamicEntities)
+		for (auto entity : DYNAMIC_ENTITIES)
 		{
 			delete entity;
 		}
@@ -42,9 +48,12 @@ namespace LevelHandler
 
 	Vector2 LevelOneSize = Vector2(0, 0);
 
-	SDL_Color playerColor = SDL_Color{ 173, 70, 62, 1 };
+	SDL_Color playerColor = SDL_Color{ 248, 56, 0, 1 };
+	SDL_Color goombaColor = SDL_Color{ 255, 204, 197, 1 };
 	SDL_Color wallColor = SDL_Color{ 214, 105, 56, 1 };
 	SDL_Color pipeColor = SDL_Color{ 1, 168, 0, 1 };
+	SDL_Color groundBlockColor = SDL_Color{ 153, 78, 0, 1 };
+	SDL_Color floatingBlockColor = SDL_Color{ 153, 78, 0, 1 };
 
 	int TileSize;
 
@@ -56,7 +65,7 @@ namespace LevelHandler
 
 	void SetTile(int x, int y, int type)
 	{
-		Vector2 tilePosition = Vector2((x -1) * TileSize, y * TileSize);
+		Vector2 tilePosition = Vector2(x * TileSize, y * TileSize);
 
 		EntityType t = (EntityType)type;
 
@@ -69,24 +78,38 @@ namespace LevelHandler
 			case EntityType::WALL:
 			{
 				Entity* wall = new Entity(tilePosition, wallColor, Vector2(TileSize, TileSize), EntityType::WALL, true);
-				StaticEntities.push_back(wall);
+				STATIC_ENTITIES.push_back(wall);
 				break;
 			}
 			case EntityType::PLAYER:
 			{
 				Player* player = new Player(tilePosition, playerColor, Vector2(TileSize, TileSize), true);
 				PLAYER = player;
-				DynamicEntities.push_back(player);
+				DYNAMIC_ENTITIES.push_back(player);
 				break;
 			}
-			case EntityType::ENEMY:
+			case EntityType::GOOMBA:
 			{
+				/*Goomba* goomba = new Goomba(tilePosition, goombaColor, Vector2(TileSize, TileSize), true);
+				DYNAMIC_ENTITIES.push_back(goomba);*/
 				break;
 			}
 			case EntityType::PIPE:
 			{
 				Entity* pipe = new Entity(tilePosition, pipeColor, Vector2(TileSize, TileSize), EntityType::PIPE, true);
-				StaticEntities.push_back(pipe);
+				STATIC_ENTITIES.push_back(pipe);
+				break;
+			}
+			case EntityType::FLOATING_BLOCK:
+			{
+				Entity* floatingBlock = new Entity(tilePosition, floatingBlockColor, Vector2(TileSize, TileSize), EntityType::FLOATING_BLOCK, true);
+				STATIC_ENTITIES.push_back(floatingBlock);
+				break;
+			}
+			case EntityType::GROUND_BLOCK:
+			{
+				Entity* groundBlock = new Entity(tilePosition, groundBlockColor, Vector2(TileSize, TileSize), EntityType::GROUND_BLOCK, true);
+				STATIC_ENTITIES.push_back(groundBlock);
 				break;
 			}
 
@@ -95,6 +118,14 @@ namespace LevelHandler
 				break;
 			}
 		}
+	}
+
+	static int GOOMBA_ID = 0;
+	void SpawnGoomba(int x, int y, int waypointOne, int waypointTwo)
+	{
+		Vector2 goombaPosition = Vector2(x * TileSize, y * TileSize);
+		Goomba* goomba = new Goomba(goombaPosition, goombaColor, Vector2(TileSize, TileSize), waypointOne * TileSize, waypointTwo * TileSize, GOOMBA_ID++, true);
+		DYNAMIC_ENTITIES.push_back(goomba);
 	}
 
 	static int lua_LoadLevel(lua_State* L)
@@ -113,7 +144,17 @@ namespace LevelHandler
 		int x = lua_tointeger(L, 1);
 		int y = lua_tointeger(L, 2);
 		int type = lua_tointeger(L, 3);
-		SetTile(x, y, type);
+		SetTile(x - 1, y - 1, type);
+		return 0;
+	}
+	int lua_SpawnGoomba(lua_State* L)
+	{
+		if (lua_gettop(L) != 4) return -1;
+		int x = lua_tointeger(L, 1);
+		int y = lua_tointeger(L, 2);
+		int waypointOne = lua_tointeger(L, 3);
+		int waypointTwo = lua_tointeger(L, 4);
+		SpawnGoomba(x - 1, y - 1, waypointOne - 1, waypointTwo - 1);
 		return 0;
 	}
 }
