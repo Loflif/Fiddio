@@ -32,6 +32,7 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="src\Goomba.lua" />
+    <None Include="src\GoombaTest.lua" />
     <None Include="src\LevelLoader.lua" />
     <None Include="src\Player.lua" />
     <None Include="src\Settings.lua" />

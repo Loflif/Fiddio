@@ -49,6 +49,7 @@
     <None Include="src\LevelLoader.lua" />
     <None Include="src\Player.lua" />
     <None Include="src\Goomba.lua" />
+    <None Include="src\GoombaTest.lua" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Fiddio.h">

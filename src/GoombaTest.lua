@@ -1,7 +1,7 @@
 local MovementSpeed = 50
 local PatrollingBehaviours = {}
 
-function Patrol(host, patrolWaypointOne, patrolWaypointTwo, startDir, ID)
+function Patrol(host, patrolWaypointOne, patrolWaypointTwo, ID)
     while true do
         _PatrolToPoint(host, patrolWaypointOne, MovementSpeed, ID)
         coroutine.yield()
