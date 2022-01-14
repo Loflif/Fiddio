@@ -31,6 +31,10 @@ namespace LevelHandler
 		{
 			std::cout << "LevelHandler.Init() could not call function LoadLevel in scripthandler " << std::endl;
 		}
+		/*if (!ScriptHandler::CallFunctionNoReturn("src/Goomba.lua", "SpawnGoombas"))
+		{
+			std::cout << "LevelHandler.Init() could not call function SpawnGoombas in scripthandler " << std::endl;
+		}*/
 	}
 
 	void CleanUp()

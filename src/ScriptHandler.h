@@ -9,6 +9,7 @@ namespace ScriptHandler
 	bool CheckLua(lua_State* L, int r);
 	bool RegisterFunction(const char* fileName, const char* functionName, lua_CFunction functionWrapper);
 	bool GetFunction(const char* fileName, const char* functionName);
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName);
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, const int functionVariable);
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host);
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable);

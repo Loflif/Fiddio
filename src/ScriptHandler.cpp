@@ -99,6 +99,20 @@ namespace ScriptHandler
 		return true;
 	}
 
+	bool CallFunctionNoReturn(const char* fileName, const char* functionName)
+	{
+		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+			return false;
+
+		if (!GetFunction(fileName, functionName))
+			return false;
+
+		if (!CheckLua(Script, lua_pcall(Script, 0, 1, 0)))
+			return false;
+
+		return true;
+	}
+
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, const int functionVariable)
 	{
 		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
