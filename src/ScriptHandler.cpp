@@ -1,37 +1,35 @@
 #include "ScriptHandler.h"
 #include "LevelHandler.h"
 
-#include <functional>
-
 namespace ScriptHandler
 {
-	lua_State* Script;
+	lua_State* State;
 
 	void Init()
 	{
-		Script = luaL_newstate();
-		luaL_openlibs(Script);
+		State = luaL_newstate();
+		luaL_openlibs(State);
 	}
 
 	void CleanUp()
 	{
-		lua_close(Script);
+		lua_close(State);
 	}
 
 	bool RegisterFunction(const char* fileName, const char* functionName, lua_CFunction functionWrapper)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
-		lua_register(Script, functionName, functionWrapper);
+		lua_register(State, functionName, functionWrapper);
 		return true;
 	}
 
-	bool CheckLua(lua_State* L, int r)
+	bool CheckLua(lua_State* state, int response)
 	{
-		if (r != LUA_OK)
+		if (response != LUA_OK)
 		{
-			std::string errorMsg = lua_tostring(L, -1);
+			std::string errorMsg = lua_tostring(state, -1);
 			std::cout << errorMsg << std::endl;
 			return false;
 		}
@@ -41,59 +39,59 @@ namespace ScriptHandler
 	
 	bool GetTable(const char* fileName, const char* tableName, const char* variableName)
 	{
-		lua_getglobal(Script, tableName);
-		if (!lua_istable(Script, -1))
+		lua_getglobal(State, tableName);
+		if (!lua_istable(State, -1))
 		{
 			std::cout << "ScriptHandler tried getting table '" << tableName << "' but did not find one" << std::endl;
 			return false;
 		}
-		lua_pushstring(Script, variableName);
-		lua_gettable(Script, -2);
+		lua_pushstring(State, variableName);
+		lua_gettable(State, -2);
 	}
 
 	const char* GetTableString(const char* fileName, const char* tableName, const char* variableName)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return nullptr;
 
 		if (!GetTable(fileName, tableName, variableName))
 			return nullptr;
 
-		const char* queriedVariable = lua_tostring(Script, -1);
-		lua_pop(Script, 1);
+		const char* queriedVariable = lua_tostring(State, -1);
+		lua_pop(State, 1);
 		return queriedVariable;
 	}
 
 	int GetTableInt(const char* fileName, const char* tableName, const char* variableName)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return 0;
 
 		if (!GetTable(fileName, tableName, variableName))
 			return 0;
 
-		const int queriedVariable = lua_tointeger(Script, -1);
-		lua_pop(Script, 1);
+		const int queriedVariable = lua_tointeger(State, -1);
+		lua_pop(State, 1);
 		return queriedVariable;
 	}
 
 	float GetTableFloat(const char* fileName, const char* tableName, const char* variableName)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return 0.0f;
 
 		if (!GetTable(fileName, tableName, variableName))
 			return 0.0f;
 
-		const float queriedVariable = lua_tonumber(Script, -1);
-		lua_pop(Script, 1);
+		const float queriedVariable = lua_tonumber(State, -1);
+		lua_pop(State, 1);
 		return queriedVariable;
 	}
 
 	bool GetFunction(const char* fileName, const char* functionName)
 	{
-		lua_getglobal(Script, functionName);
-		if (!lua_isfunction(Script, -1))
+		lua_getglobal(State, functionName);
+		if (!lua_isfunction(State, -1))
 			return false;
 
 		return true;
@@ -101,13 +99,13 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		if (!CheckLua(Script, lua_pcall(Script, 0, 1, 0)))
+		if (!CheckLua(State, lua_pcall(State, 0, 1, 0)))
 			return false;
 
 		return true;
@@ -115,14 +113,14 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, const int functionVariable)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushinteger(Script, functionVariable);
-		if (!CheckLua(Script, lua_pcall(Script, 1, 1, 0)))
+		lua_pushinteger(State, functionVariable);
+		if (!CheckLua(State, lua_pcall(State, 1, 1, 0)))
 			return false;
 
 		return true;
@@ -130,14 +128,14 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushlightuserdata(Script, host);
-		if (!CheckLua(Script, lua_pcall(Script, 1, 1, 0)))
+		lua_pushlightuserdata(State, host);
+		if (!CheckLua(State, lua_pcall(State, 1, 1, 0)))
 			return false;
 
 		return true;
@@ -145,16 +143,16 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const float functionVariable2)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushlightuserdata(Script, host);
-		lua_pushnumber(Script, functionVariable);
-		lua_pushnumber(Script, functionVariable2);
-		if (!CheckLua(Script, lua_pcall(Script, 3, 1, 0)))
+		lua_pushlightuserdata(State, host);
+		lua_pushnumber(State, functionVariable);
+		lua_pushnumber(State, functionVariable2);
+		if (!CheckLua(State, lua_pcall(State, 3, 1, 0)))
 			return false;
 
 		return true;
@@ -162,17 +160,17 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const float functionVariable2, const float functionVariable3)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushlightuserdata(Script, host);
-		lua_pushnumber(Script, functionVariable);
-		lua_pushnumber(Script, functionVariable2);
-		lua_pushnumber(Script, functionVariable3);
-		if (!CheckLua(Script, lua_pcall(Script, 4, 1, 0)))
+		lua_pushlightuserdata(State, host);
+		lua_pushnumber(State, functionVariable);
+		lua_pushnumber(State, functionVariable2);
+		lua_pushnumber(State, functionVariable3);
+		if (!CheckLua(State, lua_pcall(State, 4, 1, 0)))
 			return false;
 
 		return true;
@@ -180,18 +178,18 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const float functionVariable2, const float functionVariable3, const int functionVariable4)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushlightuserdata(Script, host);
-		lua_pushnumber(Script, functionVariable);
-		lua_pushnumber(Script, functionVariable2);
-		lua_pushnumber(Script, functionVariable3);
-		lua_pushinteger(Script, functionVariable4);
-		if (!CheckLua(Script, lua_pcall(Script, 5, 1, 0)))
+		lua_pushlightuserdata(State, host);
+		lua_pushnumber(State, functionVariable);
+		lua_pushnumber(State, functionVariable2);
+		lua_pushnumber(State, functionVariable3);
+		lua_pushinteger(State, functionVariable4);
+		if (!CheckLua(State, lua_pcall(State, 5, 1, 0)))
 			return false;
 
 		return true;
@@ -199,19 +197,19 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const float functionVariable, const float functionVariable2, const float functionVariable3, const float functionVariable4, const int functionVariable5)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushlightuserdata(Script, host);
-		lua_pushnumber(Script, functionVariable);
-		lua_pushnumber(Script, functionVariable2);
-		lua_pushnumber(Script, functionVariable3);
-		lua_pushnumber(Script, functionVariable4);
-		lua_pushinteger(Script, functionVariable5);
-		if (!CheckLua(Script, lua_pcall(Script, 6, 1, 0)))
+		lua_pushlightuserdata(State, host);
+		lua_pushnumber(State, functionVariable);
+		lua_pushnumber(State, functionVariable2);
+		lua_pushnumber(State, functionVariable3);
+		lua_pushnumber(State, functionVariable4);
+		lua_pushinteger(State, functionVariable5);
+		if (!CheckLua(State, lua_pcall(State, 6, 1, 0)))
 			return false;
 
 		return true;
@@ -219,15 +217,15 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushlightuserdata(Script, host);
-		lua_pushnumber(Script, functionVariable);
-		if (!CheckLua(Script, lua_pcall(Script, 2, 1, 0)))
+		lua_pushlightuserdata(State, host);
+		lua_pushnumber(State, functionVariable);
+		if (!CheckLua(State, lua_pcall(State, 2, 1, 0)))
 			return false;
 
 		return true;
@@ -235,16 +233,16 @@ namespace ScriptHandler
 
 	bool CallFunctionNoReturn(const char* fileName, const char* functionName, void* host, const double functionVariable, const bool functionVariable2)
 	{
-		if (!CheckLua(Script, luaL_dofile(Script, fileName)))
+		if (!CheckLua(State, luaL_dofile(State, fileName)))
 			return false;
 
 		if (!GetFunction(fileName, functionName))
 			return false;
 
-		lua_pushlightuserdata(Script, host);
-		lua_pushnumber(Script, functionVariable);
-		lua_pushboolean(Script, functionVariable2);
-		if (!CheckLua(Script, lua_pcall(Script, 3, 1, 0)))
+		lua_pushlightuserdata(State, host);
+		lua_pushnumber(State, functionVariable);
+		lua_pushboolean(State, functionVariable2);
+		if (!CheckLua(State, lua_pcall(State, 3, 1, 0)))
 			return false;
 
 		return true;

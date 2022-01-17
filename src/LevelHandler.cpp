@@ -46,8 +46,6 @@ namespace LevelHandler
 		}
 	}
 
-	Vector2 LevelOneSize = Vector2(0, 0);
-
 	SDL_Color playerColor = SDL_Color{ 248, 56, 0, 1 };
 	SDL_Color goombaColor = SDL_Color{ 255, 204, 197, 1 };
 	SDL_Color wallColor = SDL_Color{ 214, 105, 56, 1 };
@@ -57,9 +55,8 @@ namespace LevelHandler
 
 	int TileSize;
 
-	void LoadLevel(int w, int h, int tileSize)
+	void LoadLevel(int tileSize)
 	{
-		LevelOneSize = { (float)w, (float)h };
 		TileSize = tileSize;
 	}
 
@@ -106,7 +103,6 @@ namespace LevelHandler
 				STATIC_ENTITIES.push_back(groundBlock);
 				break;
 			}
-
 			default:
 			{
 				break;
@@ -125,11 +121,9 @@ namespace LevelHandler
 
 	static int lua_LoadLevel(lua_State* L)
 	{
-		if (lua_gettop(L) != 3) return -1;
-		int w = lua_tointeger(L, 1);
-		int h = lua_tointeger(L, 2);
-		int tileSize = lua_tointeger(L, 3);
-		LoadLevel(w, h, tileSize);
+		if (lua_gettop(L) != 1) return -1;
+		int tileSize = lua_tointeger(L, 1);
+		LoadLevel(tileSize);
 		return 0;
 	}
 
