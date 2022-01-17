@@ -31,10 +31,6 @@ namespace LevelHandler
 		{
 			std::cout << "LevelHandler.Init() could not call function LoadLevel in scripthandler " << std::endl;
 		}
-		/*if (!ScriptHandler::CallFunctionNoReturn("src/Goomba.lua", "SpawnGoombas"))
-		{
-			std::cout << "LevelHandler.Init() could not call function SpawnGoombas in scripthandler " << std::endl;
-		}*/
 	}
 
 	void CleanUp()
@@ -92,12 +88,6 @@ namespace LevelHandler
 				DYNAMIC_ENTITIES.push_back(player);
 				break;
 			}
-			case EntityType::GOOMBA:
-			{
-				/*Goomba* goomba = new Goomba(tilePosition, goombaColor, Vector2(TileSize, TileSize), true);
-				DYNAMIC_ENTITIES.push_back(goomba);*/
-				break;
-			}
 			case EntityType::PIPE:
 			{
 				Entity* pipe = new Entity(tilePosition, pipeColor, Vector2(TileSize, TileSize), EntityType::PIPE, true);
@@ -124,11 +114,12 @@ namespace LevelHandler
 		}
 	}
 
-	static int GOOMBA_ID = 0;
-	void SpawnGoomba(int x, int y, int waypointOne, int waypointTwo)
+	void SpawnGoomba(int x, int y, int waypointOneX, int waypointTwoX)
 	{
 		Vector2 goombaPosition = Vector2(x * TileSize, y * TileSize);
-		Goomba* goomba = new Goomba(goombaPosition, goombaColor, Vector2(TileSize, TileSize), waypointOne * TileSize, waypointTwo * TileSize, GOOMBA_ID++, true);
+		Vector2 waypointOne = Vector2(waypointOneX * TileSize, goombaPosition.y);
+		Vector2 waypointTwo = Vector2(waypointTwoX * TileSize, goombaPosition.y);
+		Goomba* goomba = new Goomba(goombaPosition, goombaColor, Vector2(TileSize, TileSize), waypointOne, waypointTwo, true);
 		DYNAMIC_ENTITIES.push_back(goomba);
 	}
 
@@ -156,9 +147,9 @@ namespace LevelHandler
 		if (lua_gettop(L) != 4) return -1;
 		int x = lua_tointeger(L, 1);
 		int y = lua_tointeger(L, 2);
-		int waypointOne = lua_tointeger(L, 3);
-		int waypointTwo = lua_tointeger(L, 4);
-		SpawnGoomba(x - 1, y - 1, waypointOne - 1, waypointTwo - 1);
+		int waypointOneX = lua_tointeger(L, 3);
+		int waypointTwoX = lua_tointeger(L, 4);
+		SpawnGoomba(x - 1, y - 1, waypointOneX - 1, waypointTwoX - 1);
 		return 0;
 	}
 }

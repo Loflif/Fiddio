@@ -14,7 +14,6 @@ function OnUpdate(host, deltaTime, velocityX, velocityY, movementInput)
 	local frameVelocityX = velocityX
 	local frameVelocityY = velocityY
 
-	--print("[LUA]: OnUpdate was called")
 	frameVelocityY = AddGravity(deltaTime, frameVelocityY)
 
 	if movementInput == 0 then
@@ -26,8 +25,6 @@ function OnUpdate(host, deltaTime, velocityX, velocityY, movementInput)
 end
 
 function AddGravity(deltaTime, velocityY)
-	--print("[LUA]: AddGravity was called")
-	
 	if velocityY > 0 then
 		velocityY = velocityY + (FallingGravity * deltaTime)
 	else
@@ -38,20 +35,17 @@ function AddGravity(deltaTime, velocityY)
 end
 
 function OnJump(host, velocityY)
-	--print("[LUA]: OnJump was called")
 	velocityY = velocityY - JumpForce
 	_SetVelocityY(host, velocityY)
 end
 
 function OnBounce(host)
-	--print("[LUA]: OnBounce was called")
 	velocityY = - BounceForce
 	_SetVelocityY(host, velocityY)
 end
 
 
 function Decelerate(deltaTime, velocityX)
-	--print("[LUA]: Decelerate was called")
 	potentialDeceleration = Deceleration * deltaTime	
 
 	if velocityX > potentialDeceleration then
@@ -65,7 +59,6 @@ function Decelerate(deltaTime, velocityX)
 end
 
 function Accelerate(deltaTime, velocityX, movementInput)
-	--print("[LUA]: Accelerate was called with: " .. movementInput .. " input")
 	if movementInput == 1 then
 		if velocityX < MaxMoveSpeed then
 			velocityX = velocityX + (Acceleration * deltaTime)

@@ -1,91 +1,42 @@
 #include "Goomba.h"
 #include "ScriptHandler.h"
 
-Goomba::Goomba(Vector2 spawnPos, SDL_Color color, Vector2 colliderSize, float waypointOne, float waypointTwo, int id, bool activate)
+Goomba::Goomba(Vector2 spawnPos, SDL_Color color, Vector2 colliderSize, Vector2 waypointOne, Vector2 waypointTwo, bool activate)
 	: Entity(spawnPos, color, colliderSize, EntityType::GOOMBA, activate)	
 {
-	ID = id;
-
-	ScriptHandler::RegisterFunction(ScriptFile, "_SetPosition", lua_SetPosition);
-	ScriptHandler::RegisterFunction(ScriptFile, "_SetPositionX", lua_SetPosition);
-	ScriptHandler::RegisterFunction(ScriptFile, "_SetVelocity", lua_SetVelocity);
-	ScriptHandler::RegisterFunction(ScriptFile, "_SetVelocityX", lua_SetVelocity);
-
-	//ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnStart", this, spawnPos.x, spawnPos.y, waypointOne, waypointTwo, id);
+	MovementSpeed = ScriptHandler::GetTableFloat(ScriptFile, "Goomba", "MovementSpeed");
+	
+	CurrentWaypoint = waypointOne;
+	OtherWaypoint = waypointTwo;
 }
 
 void Goomba::Update()
 {
-	//ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnUpdate", this, DELTA_TIME, Position.x, Position.y, ID);
-	Position += CurrentVelocity * DELTA_TIME;
+	if (MoveTowardsTarget(Position, CurrentWaypoint, MovementSpeed * DELTA_TIME))
+		std::swap(CurrentWaypoint, OtherWaypoint);
 }
 
 void Goomba::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
 {
-	if (other->T == EntityType::WALL
-		|| other->T == EntityType::PIPE
-		|| other->T == EntityType::GROUND_BLOCK
-		|| other->T == EntityType::FLOATING_BLOCK)
+	
+}
+
+bool Goomba::MoveTowardsTarget(Vector2& position, const Vector2& target, const float step)
+{
+	Vector2 delta = target - position;
+	
+	float sqrDist = position.SqrDistanceTo(target);
+
+	if (sqrDist < step * step)
 	{
-		//CurrentVelocity.x *= -1;
+		position = target;
+		return true;
 	}
-}
 
-void Goomba::SetPosition(Vector2 newPosition)
-{
-	Position = newPosition;
-}
+	Vector2 dir = delta.Normalize();
+	CurrentVelocity = dir * (step / DELTA_TIME); // For collision purposes
 
-void Goomba::SetPositionX(float newX)
-{
-	Position.x = newX;
-}
+	position += dir * step;
 
-void Goomba::SetVelocity(Vector2 newVelocity)
-{
-	CurrentVelocity = newVelocity;
-}
-
-void Goomba::SetVelocityX(float newX)
-{
-	CurrentVelocity.x = newX;
-}
-
-
-int lua_SetPosition(lua_State* L)
-{
-	if (lua_gettop(L) != 3) return -1;
-	Goomba* goomba = static_cast<Goomba*>(lua_touserdata(L, 1));
-	float x = lua_tonumber(L, 2);
-	float y = lua_tonumber(L, 3);
-	goomba->SetPosition(Vector2(x, y));
-	return 0;
-}
-
-int lua_SetPositionX(lua_State* L)
-{
-	if (lua_gettop(L) != 2) return -1;
-	Goomba* goomba = static_cast<Goomba*>(lua_touserdata(L, 1));
-	float x = lua_tonumber(L, 2);
-	goomba->SetPositionX(x);
-	return 0;
-}
-
-int lua_SetVelocity(lua_State* L)
-{
-	if (lua_gettop(L) != 3) return -1;
-	Goomba* goomba = static_cast<Goomba*>(lua_touserdata(L, 1));
-	float x = lua_tonumber(L, 2);
-	float y = lua_tonumber(L, 3);
-	goomba->SetVelocity(Vector2(x, y));
-	return 0;
-}
-
-int lua_SetVelocityX(lua_State* L)
-{
-	if (lua_gettop(L) != 2) return -1;
-	Goomba* goomba = static_cast<Goomba*>(lua_touserdata(L, 1));
-	float x = lua_tonumber(L, 2);
-	goomba->SetVelocityX(x);
-	return 0;
+	return false;
 }

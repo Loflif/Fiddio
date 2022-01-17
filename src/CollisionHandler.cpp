@@ -23,9 +23,10 @@ namespace CollisionHandler
 		return false;
 	}
 
+	// Based on https://www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf chapter 5.5.8 (p.231)
 	bool RayIntersectsAABB(const Vector2 start, const Vector2 dir, const AABB aabb, HitInfo& hitInfo)
 	{
-		Vector2 nearHit
+		Vector2 nearHit 
 		{
 			(aabb.min.x - start.x) / dir.x,
 			(aabb.min.y - start.y) / dir.y 
@@ -88,6 +89,7 @@ namespace CollisionHandler
 		return true;
 	}
 
+	// Based on https://www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf chapter 5.5.8 (p.231)
 	bool SweptAABBtoAABB(const AABB a, const AABB b, Vector2 relDisplacement, HitInfo& hitInfo)
 	{
 		// early-out if nothing is moving.
@@ -120,7 +122,7 @@ namespace CollisionHandler
 			if (!left->IsActive)
 				continue;
 
-			for (int j = i + 1; j < dynamicEntities.size(); j++)
+			for (int j = i + 1; j < dynamicEntities.size(); j++) // Check dynamic entities against each other
 			{
 				Entity* right = dynamicEntities[j];
 				if (!right->IsActive)
@@ -139,7 +141,7 @@ namespace CollisionHandler
 					collisions.push_back({ left, right, hitInfo });
 				}
 			}
-			for (int j = 0; j < staticEntities.size(); j++)
+			for (int j = 0; j < staticEntities.size(); j++) // Check dynamic entities against static entities
 			{
 				Entity* right = staticEntities[j];
 				if (!right->IsActive)
@@ -158,17 +160,17 @@ namespace CollisionHandler
 					collisions.push_back({ left, right, hitInfo });
 				}
 			}
-			if (collisions.size() > 0)
+			if (collisions.size() > 0) // Go through all collisions
 			{
 				std::sort(collisions.begin(), collisions.end(),
 					[](const Collision& a, Collision& b) -> bool
 					{
-						return a.hit.t < b.hit.t;
+						return a.hit.t < b.hit.t; // Sort collisions based on how far into the frame they happened
 					});
 				collisions[0].a->OnCollision(collisions[0].b, collisions[0].hit);
 				collisions[0].b->OnCollision(collisions[0].a, collisions[0].hit);
 
-				for (int i = 1; i < collisions.size(); i++)
+				for (int i = 1; i < collisions.size(); i++) // Check if resolving all collisions resolved all overlaps
 				{
 					Entity* left = collisions[i].a;
 					Entity* right = collisions[i].b;
