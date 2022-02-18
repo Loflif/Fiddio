@@ -1,10 +1,10 @@
-Acceleration = 500
-Deceleration = 600
-MaxMoveSpeed = 300
+Acceleration = 300
+Deceleration = 400
+MaxMoveSpeed = 400
 Gravity = 3000
-FallingGravity = 5000
-JumpForce = 900
-BounceForce = 500
+FallingGravity = 7000
+JumpForce = 1000
+BounceForce = 700
 
 function OnStart(host)
 
