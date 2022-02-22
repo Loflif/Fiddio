@@ -3,7 +3,9 @@ Deceleration = 400
 MaxMoveSpeed = 400
 Gravity = 3000
 FallingGravity = 7000
-JumpForce = 1000
+JumpForce = 700
+JumpHeldForce = 2000
+JumpHeldTimeMax = 0.3
 BounceForce = 700
 
 function OnStart(host)
@@ -37,6 +39,13 @@ end
 function OnJump(host, velocityY)
 	velocityY = velocityY - JumpForce
 	_SetVelocityY(host, velocityY)
+end
+
+function OnJumpHeld(host, velocityY, deltaTime, jumpTimer)
+	if jumpTimer <= JumpHeldTimeMax then
+		velocityY = velocityY - (JumpHeldForce * deltaTime)
+		_SetVelocityY(host, velocityY)
+	end
 end
 
 function OnBounce(host)

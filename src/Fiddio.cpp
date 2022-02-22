@@ -5,7 +5,6 @@
 #include "LevelHandler.h"
 #include "Player.h"
 
-#include <cmath>
 #include <iostream>
 
 struct KeyState

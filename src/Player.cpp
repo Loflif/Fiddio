@@ -16,6 +16,18 @@ void Player::Update()
 {
 	Position += CurrentVelocity * DELTA_TIME;
 
+	UpdateActiveSmoke();
+	if (IsOnGround)
+		DistanceSinceLastSmokeSpawn += CurrentVelocity.x * DELTA_TIME;
+
+	if(DistanceSinceLastSmokeSpawn >= SmokeSpawnThreshold)
+	{
+		SpawnSmoke();
+		DistanceSinceLastSmokeSpawn -= SmokeSpawnThreshold;
+	}
+
+	//printf("x: %f, y: %f\n", Position.x, Position.y);
+
 	int movementInput = 0;
 
 	if (KeyDown(Key::A) || KeyDown(Key::Left))
@@ -24,26 +36,48 @@ void Player::Update()
 	if (KeyDown(Key::D) || KeyDown(Key::Right))
 		movementInput = 1;
 
+	//printf("Calling OnUpdate with %f as velocity\n", CurrentVelocity.y);
 	ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnUpdate", this, DELTA_TIME, CurrentVelocity.x, CurrentVelocity.y, movementInput);
 
 	if (IsOnGround &&
 		(KeyPressed(Key::W) || KeyPressed(Key::Space)))
 	{
-		ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnJump", this, DELTA_TIME, CurrentVelocity.y);
+		ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnJump", this, CurrentVelocity.y);
+		JumpHeldTimer = 0.0f;
 		IsOnGround = false;
+	}
+
+	if(KeyDown(Key::W) || KeyDown(Key::Space))
+	{
+		ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnJumpHeld", this, CurrentVelocity.y, DELTA_TIME, JumpHeldTimer);
+	}
+	JumpHeldTimer += DELTA_TIME;
+}
+
+void Player::Render(SDL_Renderer* renderer, Vector2 cameraPos)
+{
+	Entity::Render(renderer, cameraPos);
+
+	for(auto& rect : RunningSmokeParticles)
+	{
+		if (!rect.IsActive)
+			continue;
+
+		SDL_Rect drawRect = { round(rect.DrawRect.x + cameraPos.x), round(rect.DrawRect.y + cameraPos.y), round(rect.Scale), round(rect.Scale) };
+
+		SDL_SetRenderDrawColor(renderer, SmokeColor.r, SmokeColor.g, SmokeColor.b, SmokeColor.a);
+		SDL_RenderFillRect(renderer, &drawRect);
 	}
 }
 
-
-void Player::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
+void Player::OnCollisionEnter(Entity* other, CollisionHandler::HitInfo hit)
 {
+	//printf("Player::OnCollisionEnter\n");
 	if (other->T == EntityType::WALL
 		|| other->T == EntityType::PIPE
 		|| other->T == EntityType::FLOATING_BLOCK
 		|| other->T == EntityType::GROUND_BLOCK)
 	{
-		Vector2 recoilVelocity = CurrentVelocity.Dot(hit.normal) * hit.normal;
-		CurrentVelocity -= recoilVelocity;
 		if (hit.normal.y < 0)
 		{
 			IsOnGround = true;
@@ -52,6 +86,7 @@ void Player::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
 		{
 			other->Die();
 		}
+
 	}
 	if (other->T == EntityType::GOOMBA)
 	{
@@ -65,7 +100,17 @@ void Player::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
 			Die();
 		}
 	}
+}
 
+
+void Player::OnCollisionStay(Entity* other, CollisionHandler::HitInfo hit)
+{
+
+}
+
+void Player::OnCollisionExit(Entity* other, CollisionHandler::HitInfo oldHitInfo)
+{
+	//printf("Player::OnCollisionExit\n");
 }
 
 void Player::SetPosition(Vector2 newPosition)
@@ -86,6 +131,41 @@ void Player::SetVelocityX(float x)
 void Player::SetVelocityY(float y)
 {
 	CurrentVelocity.y = y;
+}
+
+void Player::SpawnSmoke()
+{
+	SmokeIterator++;
+	int i = SmokeIterator%SMOKE_COUNT;
+	RunningSmokeParticles[i].IsActive = true;
+
+	RunningSmokeParticles[i].DrawRect.x = round(Position.x);
+	RunningSmokeParticles[i].DrawRect.y = round(Position.y + ColliderSize.y - (SmokeMaxSize * 0.5f));
+
+	RunningSmokeParticles[i].Scale = 0;
+	RunningSmokeParticles[i].DrawRect.w = RunningSmokeParticles[i].Scale;
+	RunningSmokeParticles[i].DrawRect.h = RunningSmokeParticles[i].Scale;
+
+	RunningSmokeParticles[i].TimeActive = 0.0f;
+}
+
+void Player::UpdateActiveSmoke()
+{
+	for (auto& rect : RunningSmokeParticles)
+	{
+		if (!rect.IsActive)
+			continue;
+
+		rect.TimeActive += DELTA_TIME;
+
+		if (rect.TimeActive >= SmokeDuration)
+		{
+			rect.IsActive = false;
+			continue;
+		}
+
+		rect.Scale = sin((rect.TimeActive * 3.14) / SmokeDuration) * SmokeMaxSize;
+	}
 }
 
 int lua_SetPosition(lua_State* L)

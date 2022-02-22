@@ -16,7 +16,7 @@ void Goomba::Update()
 		std::swap(CurrentWaypoint, OtherWaypoint);
 }
 
-void Goomba::OnCollision(Entity* other, CollisionHandler::HitInfo hit)
+void Goomba::OnCollisionStay(Entity* other, CollisionHandler::HitInfo hit)
 {
 	
 }

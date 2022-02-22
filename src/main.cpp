@@ -14,8 +14,6 @@ int main(int argc, char* args[])
 
 	while (game.Running())
 	{
-		Uint64 startTick = SDL_GetPerformanceCounter();
-
 		double refreshedTime = static_cast<double>(SDL_GetPerformanceCounter()) / SDL_GetPerformanceFrequency();
 		double frameTime = refreshedTime - currentTime;
 
@@ -27,8 +25,8 @@ int main(int argc, char* args[])
 
 		while (remainingFrameTime >= DELTA_TIME)
 		{
-			game.CheckCollisions();
 			game.Update();
+			game.CheckCollisions();
 			remainingFrameTime -= DELTA_TIME;
 			FRAME_NUM++;
 		}

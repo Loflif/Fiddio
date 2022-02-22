@@ -1,12 +1,14 @@
 #include "CollisionHandler.h"
 #include "Entity.h"
 #include <algorithm>
+#include <set>
 
 std::set<std::pair<EntityType, EntityType>> collisionPairs;
 
 namespace CollisionHandler
 {
 	std::vector<Collision> collisions;
+	std::vector<Collision> previousCollisions;
 
 	void AddCollisionPair(std::pair<EntityType, EntityType> pair)
 	{
@@ -85,6 +87,7 @@ namespace CollisionHandler
 		}
 
 		hitInfo.t = t1;
+		hitInfo.tXY = nearHit;
 
 		return true;
 	}
@@ -114,6 +117,7 @@ namespace CollisionHandler
 
 	void CheckCollisions(std::vector<Entity*> dynamicEntities, std::vector<Entity*> staticEntities)
 	{
+		std::swap(collisions, previousCollisions);
 		collisions.clear();
 
 		for (int i = 0; i < dynamicEntities.size(); i++) // Check new Collisions
@@ -160,15 +164,17 @@ namespace CollisionHandler
 					collisions.push_back({ left, right, hitInfo });
 				}
 			}
-			if (collisions.size() > 0) // Go through all collisions
+
+			// Go through all collisions
+			if (!collisions.empty()) 
 			{
 				std::sort(collisions.begin(), collisions.end(),
 					[](const Collision& a, Collision& b) -> bool
 					{
 						return a.hit.t < b.hit.t; // Sort collisions based on how far into the frame they happened
 					});
-				collisions[0].a->OnCollision(collisions[0].b, collisions[0].hit);
-				collisions[0].b->OnCollision(collisions[0].a, collisions[0].hit);
+
+				Depenetrate(collisions[0]);
 
 				for (int i = 1; i < collisions.size(); i++) // Check if resolving all collisions resolved all overlaps
 				{
@@ -182,11 +188,120 @@ namespace CollisionHandler
 
 					if (SweptAABBtoAABB(a, b, relativeDisplacement, collisions[i].hit))
 					{
-						collisions[i].a->OnCollision(collisions[i].b, collisions[i].hit);
-						collisions[i].b->OnCollision(collisions[i].a, collisions[i].hit);
+						Depenetrate(collisions[i]);
+					}
+					else
+					{
+						collisions.erase(collisions.begin() + i);
 					}
 				}
 			}
 		}
+
+		std::sort(collisions.begin(), collisions.end(),
+			[](const Collision& first, Collision& second) -> bool
+			{
+				if(first.a->ID == second.a->ID)
+				{
+					return first.b->ID < second.b->ID;
+				}
+
+				return first.a->ID < second.a->ID;
+			});
+		
+		size_t lastFrameIter = 0;
+		size_t thisFrameIter = 0;
+
+		while (lastFrameIter < previousCollisions.size() && thisFrameIter < collisions.size())
+		{
+			if (previousCollisions[lastFrameIter].a->ID < collisions[thisFrameIter].a->ID)
+			{
+				CallOnExit(previousCollisions[lastFrameIter]);
+				lastFrameIter++;
+			}
+			else if (previousCollisions[lastFrameIter].a->ID > collisions[thisFrameIter].a->ID)
+			{
+				CallOnEnter(collisions[thisFrameIter]);
+				thisFrameIter++;
+			}
+			else // (previousCollisions[lastFrameIter].a->ID == collisions[thisFrameIter].a->ID) 
+			{
+				if (previousCollisions[lastFrameIter].b->ID == collisions[thisFrameIter].b->ID)
+				{
+					CallOnStay(collisions[thisFrameIter]);
+					lastFrameIter++;
+					thisFrameIter++;
+				}
+				else if(previousCollisions[lastFrameIter].b->ID < collisions[thisFrameIter].b->ID)
+				{
+					CallOnExit(previousCollisions[lastFrameIter]);
+					lastFrameIter++;
+				}
+				else
+				{
+					CallOnEnter(collisions[thisFrameIter]);
+					thisFrameIter++;
+				}
+			}
+		}
+		if (lastFrameIter == previousCollisions.size())
+		{
+			while (thisFrameIter < collisions.size())
+			{
+				CallOnEnter(collisions[thisFrameIter]);
+				thisFrameIter++;
+			}
+		}
+
+		if (thisFrameIter == collisions.size())
+		{
+			while (lastFrameIter < previousCollisions.size())
+			{
+				CallOnExit(previousCollisions[lastFrameIter]);
+				lastFrameIter++;
+			}
+		}
+	}
+
+	void Depenetrate(Collision collision)
+	{
+		Entity* left = collision.a;
+		Entity* right = collision.b;
+
+		//left->Position.x += left->CurrentVelocity.x * collision.hit.tXY.x * DELTA_TIME;
+		//left->Position.y += left->CurrentVelocity.y * collision.hit.tXY.y * DELTA_TIME;
+
+		Vector2 recoilVelocity = -(left->CurrentVelocity.Dot(collision.hit.normal) * collision.hit.normal);
+		left->CurrentVelocity += recoilVelocity;
+
+		recoilVelocity = -(right->CurrentVelocity.Dot(collision.hit.normal) * collision.hit.normal);
+		right->CurrentVelocity += recoilVelocity;
+	}
+
+	void CallOnEnter(Collision collision)
+	{
+		Entity* a = collision.a;
+		Entity* b = collision.b;
+
+		a->OnCollisionEnter(b, collision.hit);
+		b->OnCollisionEnter(a, collision.hit);
+	}
+
+	void CallOnStay(Collision collision)
+	{
+		Entity* a = collision.a;
+		Entity* b = collision.b;
+
+		a->OnCollisionStay(b, collision.hit);
+		b->OnCollisionStay(a, collision.hit);
+	}
+
+	void CallOnExit(Collision collision)
+	{
+		Entity* a = collision.a;
+		Entity* b = collision.b;
+
+		a->OnCollisionExit(b, collision.hit);
+		b->OnCollisionExit(a, collision.hit);
 	}
 }
