@@ -39,6 +39,7 @@ namespace CollisionHandler
 	void AddCollisionPair(std::pair<EntityType, EntityType> pair);
 	bool HasCollisionPair(std::pair<EntityType, EntityType> collisionPair);
 	bool SweptAABBtoAABB(const AABB a, const AABB b, Vector2 relDisplacement, HitInfo& hitInfo);
+	bool MovingAABBtoAABB(AABB a, AABB b, Vector2 relDisplacement, HitInfo& hitInfo);
 	bool RayIntersectsAABB(const Vector2 start, const Vector2 dir, const AABB aabb, HitInfo& hitInfo);
 	void CheckCollisions(std::vector<Entity*> dynamicEntities, std::vector<Entity*> staticEntities);
 	void Depenetrate(Collision collision);

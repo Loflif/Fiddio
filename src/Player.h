@@ -22,7 +22,7 @@ private:
 
 	bool IsOnGround = true;
     float JumpHeldTimer = 0.0f;
-    float SmokeSpawnThreshold = 20.0f;
+    float SmokeSpawnThreshold = 32.0f;
     float SmokeDuration = 0.3f;
     float DistanceSinceLastSmokeSpawn = 0.0f;
     float SmokeMaxSize = 20.0f;
@@ -33,6 +33,9 @@ private:
         SDL_Rect DrawRect;
         float TimeActive = 0.0f;
         float Scale = 0.0f;
+        Vector2 Acceleration = Vector2(0, -640);
+        Vector2 Position = Vector2(0, 0);
+        Vector2 CurrentVelocity = Vector2(0, 0);
         bool IsActive = false;
     };
     const static int SMOKE_COUNT = 10;

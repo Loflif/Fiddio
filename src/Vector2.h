@@ -52,6 +52,12 @@ public:
 			float v[2];
 		};
 	};
+
+	float operator[](const int unsigned& idx)
+	{
+		float* foo = (float*)this;
+		return foo[idx];
+	}
 };
 
 

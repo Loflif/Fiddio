@@ -8,5 +8,6 @@ enum class EntityType
 	GOOMBA = 3,
 	PIPE = 4,
 	FLOATING_BLOCK = 5,
-	GROUND_BLOCK = 6
+	GROUND_BLOCK = 6,
+	MOVING_PLATFORM = 7
 };

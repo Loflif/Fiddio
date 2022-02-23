@@ -63,7 +63,13 @@ void Player::Render(SDL_Renderer* renderer, Vector2 cameraPos)
 		if (!rect.IsActive)
 			continue;
 
-		SDL_Rect drawRect = { round(rect.DrawRect.x + cameraPos.x), round(rect.DrawRect.y + cameraPos.y), round(rect.Scale), round(rect.Scale) };
+		SDL_Rect drawRect = 
+		{
+			round(rect.Position.x + cameraPos.x + rect.Scale * 0.5f),
+			round(rect.Position.y + cameraPos.y - rect.Scale * 0.5f),
+			round(rect.Scale),
+			round(rect.Scale)
+		};
 
 		SDL_SetRenderDrawColor(renderer, SmokeColor.r, SmokeColor.g, SmokeColor.b, SmokeColor.a);
 		SDL_RenderFillRect(renderer, &drawRect);
@@ -72,7 +78,7 @@ void Player::Render(SDL_Renderer* renderer, Vector2 cameraPos)
 
 void Player::OnCollisionEnter(Entity* other, CollisionHandler::HitInfo hit)
 {
-	//printf("Player::OnCollisionEnter\n");
+	printf("Player::OnCollisionEnter\n");
 	if (other->T == EntityType::WALL
 		|| other->T == EntityType::PIPE
 		|| other->T == EntityType::FLOATING_BLOCK
@@ -110,7 +116,15 @@ void Player::OnCollisionStay(Entity* other, CollisionHandler::HitInfo hit)
 
 void Player::OnCollisionExit(Entity* other, CollisionHandler::HitInfo oldHitInfo)
 {
-	//printf("Player::OnCollisionExit\n");
+	printf("Player::OnCollisionExit\n");
+
+	//if (other->T == EntityType::WALL
+	//	|| other->T == EntityType::PIPE
+	//	|| other->T == EntityType::FLOATING_BLOCK
+	//	|| other->T == EntityType::GROUND_BLOCK)
+	//{
+	//	IsOnGround = false;
+	//}
 }
 
 void Player::SetPosition(Vector2 newPosition)
@@ -139,10 +153,10 @@ void Player::SpawnSmoke()
 	int i = SmokeIterator%SMOKE_COUNT;
 	RunningSmokeParticles[i].IsActive = true;
 
-	RunningSmokeParticles[i].DrawRect.x = round(Position.x);
-	RunningSmokeParticles[i].DrawRect.y = round(Position.y + ColliderSize.y - (SmokeMaxSize * 0.5f));
+	RunningSmokeParticles[i].Position = Vector2(Position.x, Position.y + ColliderSize.y);
 
 	RunningSmokeParticles[i].Scale = 0;
+	RunningSmokeParticles[i].CurrentVelocity = Vector2(0, 0);
 	RunningSmokeParticles[i].DrawRect.w = RunningSmokeParticles[i].Scale;
 	RunningSmokeParticles[i].DrawRect.h = RunningSmokeParticles[i].Scale;
 
@@ -163,6 +177,9 @@ void Player::UpdateActiveSmoke()
 			rect.IsActive = false;
 			continue;
 		}
+
+		rect.CurrentVelocity += rect.Acceleration * DELTA_TIME;
+		rect.Position += rect.CurrentVelocity * DELTA_TIME;
 
 		rect.Scale = sin((rect.TimeActive * 3.14) / SmokeDuration) * SmokeMaxSize;
 	}

@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DustParticle.cpp" />
+    <ClCompile Include="MovingPlatform.cpp" />
     <ClCompile Include="src\Goomba.cpp" />
     <ClCompile Include="src\CollisionHandler.cpp" />
     <ClCompile Include="src\LevelHandler.cpp" />
@@ -37,6 +39,8 @@
     <None Include="src\Settings.lua" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DustParticle.h" />
+    <ClInclude Include="MovingPlatform.h" />
     <ClInclude Include="src\Goomba.h" />
     <ClInclude Include="src\CollisionHandler.h" />
     <ClInclude Include="src\EntityType.h" />

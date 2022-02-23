@@ -2,6 +2,7 @@
 #include "Entity.h"
 #include <algorithm>
 #include <set>
+#include <cmath>
 
 std::set<std::pair<EntityType, EntityType>> collisionPairs;
 
@@ -42,7 +43,11 @@ namespace CollisionHandler
 
 		auto swapIf = [](float& a, float& b)
 		{
-			if (a > b)
+			if (std::isnan(b))
+			{
+				return;
+			}
+			if (std::isnan(a) || a > b)
 			{
 				float temp = a;
 				a = b;
@@ -58,6 +63,8 @@ namespace CollisionHandler
 
 		float t1 = std::max(nearHit.x, nearHit.y);
 		float t2 = std::min(farHit.x, farHit.y);
+
+		swapIf(t1, t2);
 
 		//intersection is behind us
 		if (t1 < 0) return false;
@@ -92,9 +99,24 @@ namespace CollisionHandler
 		return true;
 	}
 
+	inline bool
+		AABBToAABB(const AABB& a, const AABB& b)
+	{
+		return
+			fabs(b.min.x + b.dim.x + b.min.x - a.min.x + a.dim.x + a.min.x) <= (b.min.x + b.dim.x - b.min.x + a.min.x + a.dim.x - a.min.x) &&
+			fabs(b.min.y + b.dim.y + b.min.y - a.min.y + a.dim.y + a.min.y) <= (b.min.y + b.dim.y - b.min.y + a.min.y + a.dim.y - a.min.y);
+	}
+
 	// Based on https://www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf chapter 5.5.8 (p.231)
 	bool SweptAABBtoAABB(const AABB a, const AABB b, Vector2 relDisplacement, HitInfo& hitInfo)
 	{
+		if (AABBToAABB(a, b)) // Already colliding
+		{
+			printf("Already colliding!\n");
+			hitInfo.t = 0.0f;
+			return true;
+		}
+
 		// early-out if nothing is moving.
 		if (relDisplacement.x == 0 && relDisplacement.y == 0) return false;
 
@@ -111,7 +133,52 @@ namespace CollisionHandler
 			a.min.y + a.dim.y * 0.5f 
 		};
 
-		return (RayIntersectsAABB(aCenter, relDisplacement, minkowski, hitInfo) && hitInfo.t < 1);
+		bool IsRayColliding = (RayIntersectsAABB(aCenter, relDisplacement, minkowski, hitInfo) && hitInfo.t < 1);
+		if (IsRayColliding != MovingAABBtoAABB(a, b, relDisplacement, hitInfo))
+		{
+			//printf("Something went wrong :(\n");
+		}
+		return IsRayColliding;
+	}
+
+	bool MovingAABBtoAABB(AABB a, AABB b, Vector2 relDisplacement, HitInfo& hitInfo)
+	{
+		if (AABBToAABB(a, b)) // Already colliding
+		{
+			printf("Already colliding!\n");
+			hitInfo.t = 0.0f;
+			return true;
+		}
+
+		// early-out if nothing is moving.
+		if (relDisplacement.x == 0 && relDisplacement.y == 0) return false;
+
+		float t1 = 0.0f;
+		float t2 = 1.0f;
+
+		for(int i = 0; i < 2; i++)
+		{
+			float bMax = b.min[i] + b.dim[i];
+			float aMax = a.min[i] + a.dim[i];
+
+			if(relDisplacement[i] < 0.0f)
+			{
+				if (bMax < a.min[i]) return false; // Nonintersecting and moving apart
+				if (aMax < b.min[i]) t1 = std::max((aMax - b.min[i]) / relDisplacement[i], t1);
+				if (bMax > a.min[i]) t2 = std::min((a.min[i] - bMax) / relDisplacement[i], t2);
+			}
+			if (relDisplacement[i] > 0.0f)
+			{
+				if (b.min[i] > aMax) return false; // Nonintersecting and moving apart
+				if (bMax < a.min[i]) t1 = std::max((a.min[i] - bMax) / relDisplacement[i], t1);
+				if (aMax > b.min[i]) t2 = std::min((aMax - b.min[i]) / relDisplacement[i], t2);
+			}
+			// No overlap possible if time of first contact occurs after time of last contact
+			if (t1 > t2) return false;
+		}
+
+		hitInfo.t = t1;
+		return true;
 	}
 
 
@@ -268,6 +335,7 @@ namespace CollisionHandler
 		Entity* left = collision.a;
 		Entity* right = collision.b;
 
+		left->Position += left->CurrentVelocity * collision.hit.t * DELTA_TIME;
 		//left->Position.x += left->CurrentVelocity.x * collision.hit.tXY.x * DELTA_TIME;
 		//left->Position.y += left->CurrentVelocity.y * collision.hit.tXY.y * DELTA_TIME;
 
