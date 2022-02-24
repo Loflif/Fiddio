@@ -46,7 +46,9 @@ function LoadLevel(level)
 	_SpawnGoomba(132, 12, 97, 139)
 	_SpawnGoomba(135, 12, 97, 139)
 	_SpawnGoomba(137, 12, 97, 139)
-	_SpawnGoomba(179, 12, 170, 184)
-	_SpawnGoomba(181, 12, 170, 184)
+	_SpawnGoomba(179, 12, 171, 185)
+	_SpawnGoomba(181, 12, 171, 185)
+
+	_SpawnMovingPlatform(28, 6, 31, 23, 5, 100)
 
 end

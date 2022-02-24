@@ -42,10 +42,7 @@
     <ClCompile Include="src\Goomba.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DustParticle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MovingPlatform.cpp">
+    <ClCompile Include="src\MovingPlatform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -90,10 +87,7 @@
     <ClInclude Include="src\Goomba.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DustParticle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MovingPlatform.h">
+    <ClInclude Include="src\MovingPlatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

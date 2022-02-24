@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "Goomba.h"
 #include "Fiddio.h"
+#include "MovingPlatform.h"
 
 std::vector<Entity*> STATIC_ENTITIES;
 std::vector<Entity*> DYNAMIC_ENTITIES;
@@ -26,6 +27,10 @@ namespace LevelHandler
 		if (!ScriptHandler::RegisterFunction("src/LevelLoader.lua", "_SpawnGoomba", lua_SpawnGoomba))
 		{
 			std::cout << "LevelHandler.Init() could not register function lua_SpawnGoomba in scripthandler " << std::endl;
+		}
+		if (!ScriptHandler::RegisterFunction("src/LevelLoader.lua", "_SpawnMovingPlatform", lua_SpawnMovingPlatform))
+		{
+			std::cout << "LevelHandler.Init() could not register function lua_SpawnMovingPlatform in scripthandler " << std::endl;
 		}
 		if (!ScriptHandler::CallFunctionNoReturn("src/LevelLoader.lua", "LoadLevel", 1))
 		{
@@ -52,6 +57,7 @@ namespace LevelHandler
 	SDL_Color pipeColor = SDL_Color{ 1, 168, 0, 1 };
 	SDL_Color groundBlockColor = SDL_Color{ 153, 78, 0, 1 };
 	SDL_Color floatingBlockColor = SDL_Color{ 153, 78, 0, 1 };
+	SDL_Color movingPlatformColor = SDL_Color{ 84, 23, 67 , 1 };
 
 	int TileSize;
 
@@ -119,6 +125,16 @@ namespace LevelHandler
 		DYNAMIC_ENTITIES.push_back(goomba);
 	}
 
+	void SpawnMovingPlatform(int x, int y, int waypointOneX, int waypointTwoX, int size, float speed)
+	{
+		Vector2 platformPosition = Vector2(x * TileSize, y * TileSize);
+		Vector2 waypointOne = Vector2(waypointOneX * TileSize, platformPosition.y);
+		Vector2 waypointTwo = Vector2(waypointTwoX * TileSize, platformPosition.y);
+		MovingPlatform* movingPlatform = new MovingPlatform(platformPosition, movingPlatformColor, 
+			Vector2(TileSize * size, TileSize), waypointOne, waypointTwo, speed, true);
+		DYNAMIC_ENTITIES.push_back(movingPlatform);
+	}
+
 	static int lua_LoadLevel(lua_State* L)
 	{
 		if (lua_gettop(L) != 1) return -1;
@@ -144,6 +160,19 @@ namespace LevelHandler
 		int waypointOneX = lua_tointeger(L, 3);
 		int waypointTwoX = lua_tointeger(L, 4);
 		SpawnGoomba(x - 1, y - 1, waypointOneX - 1, waypointTwoX - 1);
+		return 0;
+	}
+
+	int lua_SpawnMovingPlatform(lua_State* L)
+	{
+		if (lua_gettop(L) != 6) return -1;
+		int x = lua_tointeger(L, 1);
+		int y = lua_tointeger(L, 2);
+		int waypointOneX = lua_tointeger(L, 3);
+		int waypointTwoX = lua_tointeger(L, 4);
+		int size = lua_tointeger(L, 5);
+		float speed = lua_tonumber(L, 6);
+		SpawnMovingPlatform(x, y, waypointOneX, waypointTwoX, size, speed);
 		return 0;
 	}
 }

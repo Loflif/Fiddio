@@ -37,21 +37,41 @@ void Player::Update()
 		movementInput = 1;
 
 	//printf("Calling OnUpdate with %f as velocity\n", CurrentVelocity.y);
-	ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnUpdate", this, DELTA_TIME, CurrentVelocity.x, CurrentVelocity.y, movementInput);
+	ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnUpdate", 
+		this, DELTA_TIME, CurrentVelocity.x, CurrentVelocity.y, movementInput);
 
-	if (IsOnGround &&
-		(KeyPressed(Key::W) || KeyPressed(Key::Space)))
+	if (KeyPressed(Key::W) || KeyPressed(Key::Space))
 	{
-		ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnJump", this, CurrentVelocity.y);
-		JumpHeldTimer = 0.0f;
-		IsOnGround = false;
+		if(IsOnGround)
+		{
+			Jump();
+		}
+		else
+		{
+			JumpGraceTimer = 0;
+		}
 	}
 
 	if(KeyDown(Key::W) || KeyDown(Key::Space))
 	{
 		ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnJumpHeld", this, CurrentVelocity.y, DELTA_TIME, JumpHeldTimer);
 	}
+
 	JumpHeldTimer += DELTA_TIME;
+	if(JumpGraceTimer < JumpGraceDuration)
+	{
+		JumpGraceTimer += DELTA_TIME;
+
+		if (!IsJumping && IsOnGround)
+		{
+			Jump();
+		}
+	}
+
+	if(CurrentPlatform != nullptr)
+	{
+		Position += CurrentPlatform->CurrentVelocity * DELTA_TIME;
+	}
 }
 
 void Player::Render(SDL_Renderer* renderer, Vector2 cameraPos)
@@ -78,7 +98,7 @@ void Player::Render(SDL_Renderer* renderer, Vector2 cameraPos)
 
 void Player::OnCollisionEnter(Entity* other, CollisionHandler::HitInfo hit)
 {
-	printf("Player::OnCollisionEnter\n");
+	//printf("Player::OnCollisionEnter\n");
 	if (other->T == EntityType::WALL
 		|| other->T == EntityType::PIPE
 		|| other->T == EntityType::FLOATING_BLOCK
@@ -87,6 +107,7 @@ void Player::OnCollisionEnter(Entity* other, CollisionHandler::HitInfo hit)
 		if (hit.normal.y < 0)
 		{
 			IsOnGround = true;
+			IsJumping = false;
 		}
 		else if (hit.normal.y > 0)
 		{
@@ -106,25 +127,29 @@ void Player::OnCollisionEnter(Entity* other, CollisionHandler::HitInfo hit)
 			Die();
 		}
 	}
+	if(other->T == EntityType::MOVING_PLATFORM)
+	{
+		CurrentPlatform = other;
+		if (hit.normal.y < 0)
+		{
+			IsOnGround = true;
+			IsJumping = false;
+		}
+	}
 }
 
 
 void Player::OnCollisionStay(Entity* other, CollisionHandler::HitInfo hit)
 {
-
+	
 }
 
 void Player::OnCollisionExit(Entity* other, CollisionHandler::HitInfo oldHitInfo)
 {
-	printf("Player::OnCollisionExit\n");
-
-	//if (other->T == EntityType::WALL
-	//	|| other->T == EntityType::PIPE
-	//	|| other->T == EntityType::FLOATING_BLOCK
-	//	|| other->T == EntityType::GROUND_BLOCK)
-	//{
-	//	IsOnGround = false;
-	//}
+	if(other->T == EntityType::MOVING_PLATFORM)
+	{
+		CurrentPlatform = nullptr;
+	}
 }
 
 void Player::SetPosition(Vector2 newPosition)
@@ -161,6 +186,14 @@ void Player::SpawnSmoke()
 	RunningSmokeParticles[i].DrawRect.h = RunningSmokeParticles[i].Scale;
 
 	RunningSmokeParticles[i].TimeActive = 0.0f;
+}
+
+void Player::Jump()
+{
+	ScriptHandler::CallFunctionNoReturn(ScriptFile, "OnJump", this, CurrentVelocity.y);
+	JumpHeldTimer = 0.0f;
+	IsOnGround = false;
+	IsJumping = true;
 }
 
 void Player::UpdateActiveSmoke()

@@ -133,53 +133,55 @@ namespace CollisionHandler
 			a.min.y + a.dim.y * 0.5f 
 		};
 
-		bool IsRayColliding = (RayIntersectsAABB(aCenter, relDisplacement, minkowski, hitInfo) && hitInfo.t < 1);
-		if (IsRayColliding != MovingAABBtoAABB(a, b, relDisplacement, hitInfo))
-		{
-			//printf("Something went wrong :(\n");
-		}
-		return IsRayColliding;
+		return (RayIntersectsAABB(aCenter, relDisplacement, minkowski, hitInfo) && hitInfo.t < 1);
+
+		//bool IsRayColliding = (RayIntersectsAABB(aCenter, relDisplacement, minkowski, hitInfo) && hitInfo.t < 1);
+		//if (IsRayColliding != MovingAABBtoAABB(a, b, relDisplacement, hitInfo))
+		//{
+		//	//printf("Something went wrong :(\n");
+		//}
+		//return IsRayColliding;
 	}
 
-	bool MovingAABBtoAABB(AABB a, AABB b, Vector2 relDisplacement, HitInfo& hitInfo)
-	{
-		if (AABBToAABB(a, b)) // Already colliding
-		{
-			printf("Already colliding!\n");
-			hitInfo.t = 0.0f;
-			return true;
-		}
+	//bool MovingAABBtoAABB(AABB a, AABB b, Vector2 relDisplacement, HitInfo& hitInfo)
+	//{
+	//	if (AABBToAABB(a, b)) // Already colliding
+	//	{
+	//		printf("Already colliding!\n");
+	//		hitInfo.t = 0.0f;
+	//		return true;
+	//	}
 
-		// early-out if nothing is moving.
-		if (relDisplacement.x == 0 && relDisplacement.y == 0) return false;
+	//	// early-out if nothing is moving.
+	//	if (relDisplacement.x == 0 && relDisplacement.y == 0) return false;
 
-		float t1 = 0.0f;
-		float t2 = 1.0f;
+	//	float t1 = 0.0f;
+	//	float t2 = 1.0f;
 
-		for(int i = 0; i < 2; i++)
-		{
-			float bMax = b.min[i] + b.dim[i];
-			float aMax = a.min[i] + a.dim[i];
+	//	for(int i = 0; i < 2; i++)
+	//	{
+	//		float bMax = b.min[i] + b.dim[i];
+	//		float aMax = a.min[i] + a.dim[i];
 
-			if(relDisplacement[i] < 0.0f)
-			{
-				if (bMax < a.min[i]) return false; // Nonintersecting and moving apart
-				if (aMax < b.min[i]) t1 = std::max((aMax - b.min[i]) / relDisplacement[i], t1);
-				if (bMax > a.min[i]) t2 = std::min((a.min[i] - bMax) / relDisplacement[i], t2);
-			}
-			if (relDisplacement[i] > 0.0f)
-			{
-				if (b.min[i] > aMax) return false; // Nonintersecting and moving apart
-				if (bMax < a.min[i]) t1 = std::max((a.min[i] - bMax) / relDisplacement[i], t1);
-				if (aMax > b.min[i]) t2 = std::min((aMax - b.min[i]) / relDisplacement[i], t2);
-			}
-			// No overlap possible if time of first contact occurs after time of last contact
-			if (t1 > t2) return false;
-		}
+	//		if(relDisplacement[i] < 0.0f)
+	//		{
+	//			if (bMax < a.min[i]) return false; // Nonintersecting and moving apart
+	//			if (aMax < b.min[i]) t1 = std::max((aMax - b.min[i]) / relDisplacement[i], t1);
+	//			if (bMax > a.min[i]) t2 = std::min((a.min[i] - bMax) / relDisplacement[i], t2);
+	//		}
+	//		if (relDisplacement[i] > 0.0f)
+	//		{
+	//			if (b.min[i] > aMax) return false; // Nonintersecting and moving apart
+	//			if (bMax < a.min[i]) t1 = std::max((a.min[i] - bMax) / relDisplacement[i], t1);
+	//			if (aMax > b.min[i]) t2 = std::min((aMax - b.min[i]) / relDisplacement[i], t2);
+	//		}
+	//		// No overlap possible if time of first contact occurs after time of last contact
+	//		if (t1 > t2) return false;
+	//	}
 
-		hitInfo.t = t1;
-		return true;
-	}
+	//	hitInfo.t = t1;
+	//	return true;
+	//}
 
 
 	void CheckCollisions(std::vector<Entity*> dynamicEntities, std::vector<Entity*> staticEntities)
@@ -335,9 +337,9 @@ namespace CollisionHandler
 		Entity* left = collision.a;
 		Entity* right = collision.b;
 
-		left->Position += left->CurrentVelocity * collision.hit.t * DELTA_TIME;
-		//left->Position.x += left->CurrentVelocity.x * collision.hit.tXY.x * DELTA_TIME;
-		//left->Position.y += left->CurrentVelocity.y * collision.hit.tXY.y * DELTA_TIME;
+		if ((left->T == EntityType::PLAYER && right->T == EntityType::GOOMBA)
+			|| left->T == EntityType::GOOMBA && right->T == EntityType::PLAYER)
+			return;
 
 		Vector2 recoilVelocity = -(left->CurrentVelocity.Dot(collision.hit.normal) * collision.hit.normal);
 		left->CurrentVelocity += recoilVelocity;

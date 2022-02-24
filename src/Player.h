@@ -1,6 +1,7 @@
 #pragma once
 #include "Entity.h"
 
+class MovingPlatform;
 struct lua_State;
 
 class Player : public Entity
@@ -18,26 +19,35 @@ public:
     void SetVelocityY(float y);
 private:
     void SpawnSmoke();
+    void Jump();
     void UpdateActiveSmoke();
 
 	bool IsOnGround = true;
+    bool IsJumping = false;
     float JumpHeldTimer = 0.0f;
-    float SmokeSpawnThreshold = 32.0f;
-    float SmokeDuration = 0.3f;
-    float DistanceSinceLastSmokeSpawn = 0.0f;
-    float SmokeMaxSize = 20.0f;
+    float JumpGraceDuration = 0.2f;
+    float JumpGraceTimer = JumpGraceDuration;
+    Entity* CurrentPlatform = nullptr;
 	const char* ScriptFile = "src/Player.lua";
 
+
+    // Smoke stuff
     struct SmokeParticle
     {
         SDL_Rect DrawRect;
         float TimeActive = 0.0f;
         float Scale = 0.0f;
-        Vector2 Acceleration = Vector2(0, -640);
+        Vector2 Acceleration = Vector2(0, -1024);
         Vector2 Position = Vector2(0, 0);
         Vector2 CurrentVelocity = Vector2(0, 0);
         bool IsActive = false;
     };
+
+    float SmokeSpawnThreshold = 32.0f;
+    float SmokeDuration = 0.3f;
+    float DistanceSinceLastSmokeSpawn = 0.0f;
+    float SmokeMaxSize = 20.0f;
+
     const static int SMOKE_COUNT = 10;
     SmokeParticle RunningSmokeParticles[SMOKE_COUNT];
     SDL_Color SmokeColor{ 200, 200, 200, 255 };

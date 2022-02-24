@@ -65,6 +65,7 @@ void Fiddio::AddCollisionPairs()
 	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::GOOMBA));
 	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::FLOATING_BLOCK));
 	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::GROUND_BLOCK));
+	CollisionHandler::AddCollisionPair(std::pair<EntityType, EntityType>(EntityType::PLAYER, EntityType::MOVING_PLATFORM));
 }
 
 void Fiddio::HandleCamera()
